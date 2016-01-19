@@ -10,6 +10,7 @@ public class MobileFirstWeather implements Parcelable {
     public int      minimum;
     public int      icon;
     public String   path;
+    //Sun, Snow, Rain
     public String   phrase;
 
     public MobileFirstWeather() {;}

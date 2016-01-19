@@ -44,7 +44,7 @@ public class CatalogActivity extends AppCompatActivity {
         content.setMobileContentListener(new MobileContentListener() {
             @Override
             public void onCatalog(ArrayList<CatalogItem> departments) {
-                Log.d("CATALOG", "Got " + departments.size() + " departments.");
+                Log.d("CATALOG", "Got " + departments.size() + " items.");
             }
 
             @Override
@@ -57,7 +57,10 @@ public class CatalogActivity extends AppCompatActivity {
                 ;
             }
         });
+
+        //Chris
         content.catalog();
+        //content.all();
     }
 
 }

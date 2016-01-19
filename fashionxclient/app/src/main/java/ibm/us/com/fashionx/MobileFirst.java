@@ -17,6 +17,7 @@ import java.util.ArrayList;
 
 public class MobileFirst {
 
+    //Chris what is this Listener ArrayList for?
     private ArrayList<MobileFirstListener> observers;
 
     public MobileFirst(Context context) {
@@ -35,6 +36,7 @@ public class MobileFirst {
     }
 
     // Current conditions from Weather Insights
+    // Chris - get currentWeather from /api/weather according the current location
     public void current(float latitude, float longitude) {
         // Protected (authenticated resource)
         Request quick = new Request(
@@ -53,7 +55,7 @@ public class MobileFirst {
                 JSONObject          observed;
                 JSONObject          imperial;
                 JSONObject          today;
-                MobileFirstWeather  results;
+                MobileFirstWeather  currWeather;
 
                 try {
                     data = new JSONObject(response.getResponseText());
@@ -68,28 +70,31 @@ public class MobileFirst {
                     today = days.getJSONObject(0);
 
                     // Populate weather results
-                    results = new MobileFirstWeather();
-                    results.icon = observed.getInt("icon_code");
-                    results.path =
+                    currWeather = new MobileFirstWeather();
+                    currWeather.icon = observed.getInt("icon_code");
+                    currWeather.path =
                         BMSClient.getInstance().getBluemixAppRoute() +
                         "/public/weathericons/icon" +
-                        results.icon +
+                                currWeather.icon +
                         ".png";
-                    results.temperature = imperial.getInt("temp");
-                    results.phrase = observed.getString("phrase_12char");
+                    currWeather.temperature = imperial.getInt("temp");
+                    currWeather.phrase = observed.getString("phrase_12char");
 
                     // Maximum may be null after peak of day
                     if(today.isNull("max_temp")) {
-                        results.maximum = 9999;
+                        currWeather.maximum = 9999;
                     } else {
-                        results.maximum = today.getInt("max_temp");
+                        currWeather.maximum = today.getInt("max_temp");
                     }
 
-                    results.minimum = today.getInt("min_temp");
+                    currWeather.minimum = today.getInt("min_temp");
 
+                    //Chris ?????????
                     for(MobileFirstListener observer : observers) {
-                        observer.onCurrent(results);
+                        observer.onCurrent(currWeather);
                     }
+                    //???????????
+
                 } catch(JSONException jsone) {
                     jsone.printStackTrace();
                 }

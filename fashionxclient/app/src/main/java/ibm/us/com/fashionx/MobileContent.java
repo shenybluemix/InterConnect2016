@@ -16,10 +16,10 @@ import java.util.List;
 
 public class MobileContent {
 
-    public static final String CONTENT_ADVERTISEMENT = "fashion app/content types/advertisement";
-    public static final String CONTENT_ALL = "fashion app/views/all";
-    public static final String CONTENT_CATALOG = "InterConnect2016/content types/catalog";
-    public static final String CONTENT_SUGGESTION = "fashion app/content types/suggestion";
+    public static final String CONTENT_ADVERTISEMENT = "Samples/content types/advertisement";
+    public static final String CONTENT_ALL = "Samples/views/all";
+    public static final String CONTENT_CATALOG = "Samples/content types/Book";
+    public static final String CONTENT_SUGGESTION = "Samples/content types/suggestion";
 
     public static final String ELEMENT_IMAGE = "image";
     public static final String ELEMENT_DISCOUNT = "discount";
@@ -85,7 +85,8 @@ public class MobileContent {
 
             @Override
             public void onError(CAASErrorResult caasErrorResult) {
-                Log.d("CONTENT", "All fail.");
+                Log.d("CONTENT", "All fail."+caasErrorResult.getMessage());
+
             }
         });
         request.setPath(CONTENT_ALL);
@@ -97,17 +98,18 @@ public class MobileContent {
             @Override
             public void onSuccess(CAASContentItemsList list) {
                 ArrayList<CatalogItem>  items = new ArrayList<>();
-                CatalogItem             department;
+                CatalogItem             catalogItem;
                 List<CAASContentItem>   content = list.getContentItems();
 
                 Log.d("CONTENT", "Catalog found.");
 
                 for(CAASContentItem item : content) {
-                    department = new CatalogItem();
-                    department.title = item.getTitle();
-                    department.image = item.getElement(ELEMENT_IMAGE).toString();
-                    department.placement = item.getElement(ELEMENT_PLACEMENT).toString();
-                    items.add(department);
+                    catalogItem = new CatalogItem();
+                    catalogItem.title = item.getTitle();
+//                    department.image = item.getElement(ELEMENT_IMAGE).toString();
+//                    department.placement = item.getElement(ELEMENT_PLACEMENT).toString();
+                    items.add(catalogItem);
+                    Log.d("CONTENT","Catalog" + item.getTitle());
                 }
 
                 for(MobileContentListener observer : observers) {
@@ -117,13 +119,14 @@ public class MobileContent {
 
             @Override
             public void onError(CAASErrorResult caasErrorResult) {
-                Log.d("CONTENT", "Catalog fail.");
+                Log.d("CONTENT", "Catalog fail."+caasErrorResult.getMessage());
             }
         });
         request.setPath(CONTENT_CATALOG);
         getService().executeRequest(request);
     }
 
+    //input - weather : "Snow" / "Sun" / "Rain"
     public void suggest(String weather) {
         String[] parts = weather.split("[ /]");
 

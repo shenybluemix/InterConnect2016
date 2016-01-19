@@ -5,7 +5,7 @@
     <string name="advertisement_sample">Child Clothing</string>
     <string name="bluemix_route">http://interconnect2016.mybluemix.net</string>
     <string name="bluemix_guid">7289735a-ad60-4b10-856b-0acec17a1e09</string>
-    <string name="macm_server">macm-rendering.saas.ibmcloud.com</string>
+    <string name="macm_server">https://macm-rendering.saas.ibmcloud.com</string>
     <string name="macm_context">wps</string>
     <string name="macm_instance">vp6517</string>
     <string name="macm_api_id">1213035504176517</string>

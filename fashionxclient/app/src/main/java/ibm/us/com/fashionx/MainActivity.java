@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private MobileContent   content;
     private MobileFirst     mobile;
     private WeakHandler     handler;
+    private MobileFirstWeather  currentWeather;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +45,9 @@ public class MainActivity extends AppCompatActivity {
         // User interface
         imgSuggest = (ImageView) findViewById(R.id.image_suggest);
 
+
         // Weak handler
+        // Chris: Set currentweather based on location to the UI
         handler = new WeakHandler(new Handler.Callback() {
             @Override
             public boolean handleMessage(Message message) {
@@ -101,27 +104,45 @@ public class MainActivity extends AppCompatActivity {
         mobile.setMobileFirstListener(new MobileFirstListener() {
             // Current weather conditions
             @Override
-            public void onCurrent(MobileFirstWeather current) {
-                Bundle  bundle = new Bundle();
+            public void onCurrent(MobileFirstWeather currentWeather) {
+                Bundle bundle = new Bundle();
                 Message message = new Message();
 
                 bundle.putString("action", "weather");
-                bundle.putParcelable("weather", current);
+                bundle.putParcelable("weather", currentWeather);
                 message.setData(bundle);
 
                 handler.sendMessage(message);
 
-                content.suggest(current.phrase);
+                content.suggest(currentWeather.phrase);
             }
         });
 
+
+        // Location history
+        SharedPreferences history = getPreferences(Context.MODE_PRIVATE);
+
+        if (history.contains("latitude")) {
+            float latitude = history.getFloat("latitude", 0);
+            float longitude = history.getFloat("longitude", 0);
+
+            // Weather from cached location
+            mobile.current(latitude, longitude);
+        }
+
+        //Chris
+        else{
+           mobile.current(0, 0);
+        }
+
+
         // Mobile Content
         content = new MobileContent(
-            getApplicationContext().getString(R.string.macm_server),
-            getApplicationContext().getString(R.string.macm_context),
-            getApplicationContext().getString(R.string.macm_instance),
-            getApplicationContext().getString(R.string.macm_api_id),
-            getApplicationContext().getString(R.string.macm_api_password)
+                getApplicationContext().getString(R.string.macm_server),
+                getApplicationContext().getString(R.string.macm_context),
+                getApplicationContext().getString(R.string.macm_instance),
+                getApplicationContext().getString(R.string.macm_api_id),
+                getApplicationContext().getString(R.string.macm_api_password)
         );
         content.setMobileContentListener(new MobileContentListener() {
             @Override
@@ -133,8 +154,8 @@ public class MainActivity extends AppCompatActivity {
                     public void onSuccess(byte[] bytes) {
                         Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                         BitmapDrawable drawable = new BitmapDrawable(
-                            getApplicationContext().getResources(),
-                            bitmap
+                                getApplicationContext().getResources(),
+                                bitmap
                         );
                         imgSuggest.setImageDrawable(drawable);
                     }
@@ -159,16 +180,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Location history
-        SharedPreferences history = getPreferences(Context.MODE_PRIVATE);
-
-        if (history.contains("latitude")) {
-            float latitude = history.getFloat("latitude", 0);
-            float longitude = history.getFloat("longitude", 0);
-
-            // Weather from cached location
-            mobile.current(latitude, longitude);
-        }
 
         // Current location
         if(ContextCompat.checkSelfPermission(getApplicationContext(), "android.permission.ACCESS_COARSE_LOCATION") == PackageManager.PERMISSION_GRANTED) {
