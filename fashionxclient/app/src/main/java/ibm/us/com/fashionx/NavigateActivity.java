@@ -15,6 +15,7 @@ import android.widget.TextView;
 import com.ibm.caas.CAASAssetRequest;
 import com.ibm.caas.CAASDataCallback;
 import com.ibm.caas.CAASErrorResult;
+import com.ibm.caas.CAASRequestResult;
 
 import java.util.ArrayList;
 
@@ -60,9 +61,10 @@ public class NavigateActivity extends AppCompatActivity {
             public void onAdvertise(String path, String body) {
                 Log.d("NAVIGATE", path);
 
-                CAASDataCallback<byte[]> callback = new CAASDataCallback<byte[]>() {
+                CAASDataCallback<byte[]> callback = new CAASDataCallback <byte[]>() {
                     @Override
-                    public void onSuccess(byte[] bytes) {
+                    public void onSuccess(CAASRequestResult<byte[]> requestResult) {
+                        byte[] bytes = requestResult.getResult();
                         Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                         BitmapDrawable drawable = new BitmapDrawable(
                             getApplicationContext().getResources(),

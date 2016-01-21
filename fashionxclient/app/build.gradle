@@ -19,23 +19,21 @@ android {
     }
 }
 
-dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.1.0'
-
-    // MCA
-    compile group: 'com.ibm.mobilefirstplatform.clientsdk.android', name:'core', version: '1.0.0', ext: 'aar', transitive: true
-
-    // MACM
-    compile(name: 'MACM-SDK-android-release', ext: 'aar')
-
-    // Weak handler
-    compile 'com.badoo.mobile:android-weak-handler:1.1'
-}
-
 repositories {
     flatDir {
         dirs 'libs'
     }
 }
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:appcompat-v7:23.1.0'
+    // MCA
+    compile 'com.ibm.mobilefirstplatform.clientsdk.android:core:1.1.0'
+    // MACM
+    // Weak handler
+    compile 'com.badoo.mobile:android-weak-handler:1.1'
+    compile project(':MACM-SDK-android-release')
+}
+

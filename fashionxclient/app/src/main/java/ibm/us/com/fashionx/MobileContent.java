@@ -8,6 +8,7 @@ import com.ibm.caas.CAASContentItemsList;
 import com.ibm.caas.CAASContentItemsRequest;
 import com.ibm.caas.CAASDataCallback;
 import com.ibm.caas.CAASErrorResult;
+import com.ibm.caas.CAASRequestResult;
 import com.ibm.caas.CAASService;
 
 import java.util.ArrayList;
@@ -18,8 +19,8 @@ public class MobileContent {
 
     public static final String CONTENT_ADVERTISEMENT = "Samples/content types/advertisement";
     public static final String CONTENT_ALL = "Samples/views/all";
-    public static final String CONTENT_CATALOG = "Samples/content types/Book";
-    public static final String CONTENT_SUGGESTION = "Samples/content types/suggestion";
+    public static final String CONTENT_CATALOG = "InterConnect2016/content types/Fashion";
+    public static final String CONTENT_SUGGESTION = "InterConnect2016/content types/Fashion";
 
     public static final String ELEMENT_IMAGE = "image";
     public static final String ELEMENT_DISCOUNT = "discount";
@@ -43,10 +44,11 @@ public class MobileContent {
     public void advertise(String department) {
         String[] parts = department.split(" ");
 
-        CAASContentItemsRequest request = new CAASContentItemsRequest(new CAASDataCallback<CAASContentItemsList>() {
+        final CAASContentItemsRequest request = new CAASContentItemsRequest(new CAASDataCallback<CAASContentItemsList>() {
             @Override
-            public void onSuccess(CAASContentItemsList list) {
-                List<CAASContentItem> items = list.getContentItems();
+            public void onSuccess(CAASRequestResult<CAASContentItemsList> requestResult) {
+                CAASContentItemsList itemslist = requestResult.getResult();
+                List<CAASContentItem> items = itemslist.getContentItems();
 
                 Log.d("CONTENT", "Advertisement found.");
 
@@ -79,7 +81,7 @@ public class MobileContent {
     public void all() {
         CAASContentItemsRequest request = new CAASContentItemsRequest(new CAASDataCallback<CAASContentItemsList>() {
             @Override
-            public void onSuccess(CAASContentItemsList caasContentItemsList) {
+            public void onSuccess(CAASRequestResult<CAASContentItemsList> requestResult) {
                 Log.d("CONTENT", "All found.");
             }
 
@@ -96,10 +98,10 @@ public class MobileContent {
     public void catalog() {
         CAASContentItemsRequest request = new CAASContentItemsRequest(new CAASDataCallback<CAASContentItemsList>() {
             @Override
-            public void onSuccess(CAASContentItemsList list) {
+            public void onSuccess(CAASRequestResult<CAASContentItemsList> requestResult) {
                 ArrayList<CatalogItem>  items = new ArrayList<>();
                 CatalogItem             catalogItem;
-                List<CAASContentItem>   content = list.getContentItems();
+                List<CAASContentItem>   content = requestResult.getResult().getContentItems();
 
                 Log.d("CONTENT", "Catalog found.");
 
@@ -126,6 +128,7 @@ public class MobileContent {
         getService().executeRequest(request);
     }
 
+
     //input - weather : "Snow" / "Sun" / "Rain"
     public void suggest(String weather) {
         String[] parts = weather.split("[ /]");
@@ -134,8 +137,8 @@ public class MobileContent {
 
         CAASContentItemsRequest request = new CAASContentItemsRequest(new CAASDataCallback<CAASContentItemsList>() {
             @Override
-            public void onSuccess(CAASContentItemsList list) {
-                List<CAASContentItem> items = list.getContentItems();
+            public void onSuccess(CAASRequestResult<CAASContentItemsList> requestResult) {
+                List<CAASContentItem> items = requestResult.getResult().getContentItems();
 
                 Log.d("CONTENT", "Found suggestion (" + items.size() + ").");
 
@@ -160,6 +163,7 @@ public class MobileContent {
 
         getService().executeRequest(request);
     }
+
 
     public void setMobileContentListener(MobileContentListener observer) {
         observers.add(observer);

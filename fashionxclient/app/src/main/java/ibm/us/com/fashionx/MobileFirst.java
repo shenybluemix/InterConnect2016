@@ -45,6 +45,7 @@ public class MobileFirst {
         );
         quick.setQueryParameter("latitude", String.valueOf(latitude));
         quick.setQueryParameter("longitude", String.valueOf(longitude));
+        /**
         quick.send(new ResponseListener() {
             @Override
             public void onSuccess(Response response) {
@@ -104,7 +105,7 @@ public class MobileFirst {
             public void onFailure(Response response, Throwable t, JSONObject extendedInfo) {
                 Log.d("MOBILEFIRST", "Fail: " + response.getResponseText());
             }
-        });
+        }); **/
     }
 
     public void setMobileFirstListener(MobileFirstListener observer) {

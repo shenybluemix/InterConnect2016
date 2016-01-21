@@ -7,9 +7,11 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.Image;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.content.ContextCompat;
@@ -20,13 +22,20 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
+import android.net.Uri;
 import com.badoo.mobile.util.WeakHandler;
+import com.ibm.caas.CAASContentItem;
+import com.ibm.caas.CAASContentItemsList;
 import com.ibm.caas.CAASAssetRequest;
+import com.ibm.caas.CAASRequestResult;
+import com.ibm.caas.CAASContentItemsRequest;
 import com.ibm.caas.CAASDataCallback;
 import com.ibm.caas.CAASErrorResult;
+import com.ibm.caas.CAASService;
 
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -36,6 +45,16 @@ public class MainActivity extends AppCompatActivity {
     private MobileFirst     mobile;
     private WeakHandler     handler;
     private MobileFirstWeather  currentWeather;
+
+
+    private CAASService     caasService;
+    private List <CAASContentItem> caasContentList;
+    CAASContentItem suggestContent;
+    String imgURL;
+    String rainImageURL = "https://macm.saas.ibmcloud.com/wps/wcm/myconnect/vp6517/c7a55647-577a-4ca2-b1a2-b199b51b40f5/rain.jpeg?MOD=AJPERES";
+
+    BitmapDrawable suggestdrawable;
+    boolean drawableready;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,12 +112,115 @@ public class MainActivity extends AppCompatActivity {
                         txtMinimum.setText(concat);
 
                         break;
+
+                    case "suggest":
+                        imgURL = ((MobileContentItem)bundle.getParcelable("suggest")).image;
+                        Log.d("HANDLE SUGGEST", "after suggest" + imgURL );
+                        break;
+
+                    case "draw":
+
+                         suggestdrawable = ((MobileContentItem)bundle.getParcelable("draw")).drawable;
+                         imgSuggest.setImageDrawable(suggestdrawable );
+                         Log.d("HANDLE DRAW", "after DRAW"  );
+
+                        break;
+
                 }
 
                 return false;
             }
         });
 
+
+
+        mobile = new MobileFirst(getApplicationContext());
+
+        content = new MobileContent(
+                getApplicationContext().getString(R.string.macm_server),
+                getApplicationContext().getString(R.string.macm_context),
+                getApplicationContext().getString(R.string.macm_instance),
+                getApplicationContext().getString(R.string.macm_api_id),
+                getApplicationContext().getString(R.string.macm_api_password)
+        );
+
+        caasService = content.getService();
+
+        CAASDataCallback callback =  new CAASDataCallback<CAASContentItemsList>() {
+             @Override
+             public void onSuccess(CAASRequestResult<CAASContentItemsList> requestResult) {
+
+                 //Get image URL
+                 CAASContentItem tempItem= requestResult.getResult().getContentItems().get(0);
+                 String tempURL = tempItem.getElement("Image");
+                 MobileContentItem contentItem = new MobileContentItem();
+                 contentItem.image = tempURL;
+
+                 //sent parceble MobileContentItem to handler
+                 Bundle bundle = new Bundle();
+                 Message message = new Message();
+                 bundle.putString("action", "suggest");
+                 bundle.putParcelable("suggest", contentItem);
+                 message.setData(bundle);
+                 handler.sendMessage(message);
+
+                 Log.d("CONTENT", "OnSuccess:" + tempURL );
+             }
+
+            @Override
+            public void onError(CAASErrorResult caasErrorResult) {
+                Log.e("CONTENT", "onError");
+            }
+        };
+
+        CAASDataCallback<byte[]> Imgcallback = new CAASDataCallback<byte[]>() {
+            @Override
+            public void onSuccess(CAASRequestResult<byte[]> requestResult) {
+                byte[] bytes = requestResult.getResult();
+
+                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                BitmapDrawable drawable = new BitmapDrawable(
+                        getApplicationContext().getResources(),
+                        bitmap
+                );
+//                drawableready = true;
+//                while (!drawableready){
+
+//                }
+                MobileContentItem contentItem = new MobileContentItem();
+                contentItem.drawable = drawable;
+                Bundle bundle = new Bundle();
+                Message message = new Message();
+                bundle.putString("action", "draw");
+                bundle.putParcelable("draw", contentItem);
+                message.setData(bundle);
+                handler.sendMessage(message);
+                Log.d("Asset", "Image success: " );
+
+            }
+
+            @Override
+            public void onError(CAASErrorResult error) {
+                Log.e("Asset", "Image failed: " + error.getMessage());
+            }
+        };
+
+
+
+
+        CAASContentItemsRequest request = new CAASContentItemsRequest(callback);
+        String path = "InterConnect2016/content types/Fashion";
+        request.setPath(path);
+        request.addElements("Image");
+        caasService.executeRequest(request);
+
+        Log.d("CONTENT", "after execute" );
+
+        CAASAssetRequest assetRequest = new CAASAssetRequest(rainImageURL, Imgcallback);
+        caasService.executeRequest(assetRequest);
+        Log.d("ASSET", "after execute" );
+
+        /**
         // Mobile Client Access
         mobile = new MobileFirst(getApplicationContext());
         mobile.setMobileFirstListener(new MobileFirstListener() {
@@ -228,6 +350,12 @@ public class MainActivity extends AppCompatActivity {
 
         gps = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         gps.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, monitor);
+
+
+        **/
+
+
+
 
         // Navigation
         ImageView imgNavigate = (ImageView) findViewById(R.id.image_navigate);

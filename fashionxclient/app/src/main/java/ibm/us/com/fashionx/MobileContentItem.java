@@ -1,11 +1,13 @@
 package ibm.us.com.fashionx;
 
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Parcel;
 import android.os.Parcelable;
 
 public class MobileContentItem implements Parcelable {
 
     public String image;
+    public BitmapDrawable drawable;
 
     public MobileContentItem() {;}
 
