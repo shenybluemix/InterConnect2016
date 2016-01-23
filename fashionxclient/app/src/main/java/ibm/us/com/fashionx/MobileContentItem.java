@@ -4,10 +4,14 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.ibm.caas.CAASContentItem;
+import com.ibm.caas.CAASContentItemsList;
+
 public class MobileContentItem implements Parcelable {
 
     public String image;
     public BitmapDrawable drawable;
+    public CAASContentItemsList caasContentItemsList;
 
     public MobileContentItem() {;}
 

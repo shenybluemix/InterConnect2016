@@ -18,16 +18,17 @@ import java.util.List;
 public class MobileContent {
 
     public static final String CONTENT_ADVERTISEMENT = "Samples/content types/advertisement";
-    public static final String CONTENT_ALL = "Samples/views/all";
+    public static final String CONTENT_ALL = "InterConnect2016/views/all";
     public static final String CONTENT_CATALOG = "InterConnect2016/content types/Fashion";
     public static final String CONTENT_SUGGESTION = "InterConnect2016/content types/Fashion";
 
-    public static final String ELEMENT_IMAGE = "image";
+    public static final String ELEMENT_IMAGE = "Image";
     public static final String ELEMENT_DISCOUNT = "discount";
     public static final String ELEMENT_PLACEMENT = "placement";
 
     private ArrayList<MobileContentListener>    observers;
     private CAASService                         service;
+    private CAASContentItem                     suggestItem;
 
     public MobileContent(String server, String context, String instance, String user, String password) {
         observers = new ArrayList<>();
@@ -39,6 +40,10 @@ public class MobileContent {
                 user,
                 password
         ));
+    }
+
+    public CAASContentItem getSuggestItem(){
+        return this.suggestItem;
     }
 
     public void advertise(String department) {
@@ -135,23 +140,30 @@ public class MobileContent {
 
         Log.d("CONTENT", "Weather: " + weather);
 
-        CAASContentItemsRequest request = new CAASContentItemsRequest(new CAASDataCallback<CAASContentItemsList>() {
+
+        CAASDataCallback callback = new CAASDataCallback<CAASContentItemsList>() {
             @Override
             public void onSuccess(CAASRequestResult<CAASContentItemsList> requestResult) {
                 List<CAASContentItem> items = requestResult.getResult().getContentItems();
 
                 Log.d("CONTENT", "Found suggestion (" + items.size() + ").");
 
-                for(MobileContentListener observer : observers) {
-                    observer.onSuggest(items.get(0).getElement(ELEMENT_IMAGE).toString());
-                }
+                suggestItem = items.get(0);
+
+
+                 for(MobileContentListener observer : observers) {
+                 observer.onSuggest(items.get(0).getElement(ELEMENT_IMAGE).toString());
+                 }
             }
 
             @Override
             public void onError(CAASErrorResult caasErrorResult) {
                 Log.d("CONTENT", "Suggest failure.");
             }
-        });
+        };
+
+
+        CAASContentItemsRequest request = new CAASContentItemsRequest(callback);
 
         for(String part : parts) {
             request.addAnyKeywords(part);
@@ -162,6 +174,8 @@ public class MobileContent {
         request.setPageSize(1);
 
         getService().executeRequest(request);
+
+
     }
 
 

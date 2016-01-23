@@ -48,13 +48,12 @@ public class MainActivity extends AppCompatActivity {
 
 
     private CAASService     caasService;
-    private List <CAASContentItem> caasContentList;
-    CAASContentItem suggestContent;
-    String imgURL;
+    private List <CAASContentItem> suggestContentList;
+    private MobileContentItem suggestContent;
+    String suggestImgURL;
+    BitmapDrawable suggestdrawable;
     String rainImageURL = "https://macm.saas.ibmcloud.com/wps/wcm/myconnect/vp6517/c7a55647-577a-4ca2-b1a2-b199b51b40f5/rain.jpeg?MOD=AJPERES";
 
-    BitmapDrawable suggestdrawable;
-    boolean drawableready;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
 
         // User interface
         imgSuggest = (ImageView) findViewById(R.id.image_suggest);
-
 
         // Weak handler
         // Chris: Set currentweather based on location to the UI
@@ -114,18 +112,22 @@ public class MainActivity extends AppCompatActivity {
                         break;
 
                     case "suggest":
-                        imgURL = ((MobileContentItem)bundle.getParcelable("suggest")).image;
-                        Log.d("HANDLE SUGGEST", "after suggest" + imgURL );
+                        //suggestImgURL = rainImageURL;
+                        suggestContent = bundle.getParcelable("suggest");
+                        suggestContentList = suggestContent.caasContentItemsList.getContentItems();
+                        for(CAASContentItem item :suggestContentList){
+                            if (item.getTitle().equals("Sun") ){
+                                suggestImgURL = item.getElement("Image").toString();
+                            }
+                        }
+                        Log.d("HANDLE SUGGEST", "after suggest" + suggestImgURL );
                         break;
 
                     case "draw":
-
                          suggestdrawable = ((MobileContentItem)bundle.getParcelable("draw")).drawable;
                          imgSuggest.setImageDrawable(suggestdrawable );
                          Log.d("HANDLE DRAW", "after DRAW"  );
-
                         break;
-
                 }
 
                 return false;
@@ -150,21 +152,21 @@ public class MainActivity extends AppCompatActivity {
              @Override
              public void onSuccess(CAASRequestResult<CAASContentItemsList> requestResult) {
 
-                 //Get image URL
-                 CAASContentItem tempItem= requestResult.getResult().getContentItems().get(0);
-                 String tempURL = tempItem.getElement("Image");
-                 MobileContentItem contentItem = new MobileContentItem();
-                 contentItem.image = tempURL;
+                 MobileContentItem MobileContentItem = new MobileContentItem();
+                 MobileContentItem.caasContentItemsList = requestResult.getResult();
+
+//               List<CAASContentItem> CAASConentItemList = requestResult.getResult().getContentItems();
+//               MobileContentItem contentItem = new MobileContentItem[CAASConentItemList.size()];
 
                  //sent parceble MobileContentItem to handler
                  Bundle bundle = new Bundle();
                  Message message = new Message();
                  bundle.putString("action", "suggest");
-                 bundle.putParcelable("suggest", contentItem);
+                 bundle.putParcelable("suggest", MobileContentItem);
                  message.setData(bundle);
                  handler.sendMessage(message);
 
-                 Log.d("CONTENT", "OnSuccess:" + tempURL );
+                 Log.d("CONTENT", "OnSuccess:" );
              }
 
             @Override
@@ -172,6 +174,13 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("CONTENT", "onError");
             }
         };
+
+        CAASContentItemsRequest request = new CAASContentItemsRequest(callback);
+        String path = "InterConnect2016/content types/Fashion";
+        request.setPath(path);
+        request.addElements("Image");
+        caasService.executeRequest(request);
+        Log.d("CONTENT", "after execute" );
 
         CAASDataCallback<byte[]> Imgcallback = new CAASDataCallback<byte[]>() {
             @Override
@@ -183,10 +192,7 @@ public class MainActivity extends AppCompatActivity {
                         getApplicationContext().getResources(),
                         bitmap
                 );
-//                drawableready = true;
-//                while (!drawableready){
 
-//                }
                 MobileContentItem contentItem = new MobileContentItem();
                 contentItem.drawable = drawable;
                 Bundle bundle = new Bundle();
@@ -196,7 +202,6 @@ public class MainActivity extends AppCompatActivity {
                 message.setData(bundle);
                 handler.sendMessage(message);
                 Log.d("Asset", "Image success: " );
-
             }
 
             @Override
@@ -205,24 +210,14 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-
-
-
-        CAASContentItemsRequest request = new CAASContentItemsRequest(callback);
-        String path = "InterConnect2016/content types/Fashion";
-        request.setPath(path);
-        request.addElements("Image");
-        caasService.executeRequest(request);
-
-        Log.d("CONTENT", "after execute" );
-
-        CAASAssetRequest assetRequest = new CAASAssetRequest(rainImageURL, Imgcallback);
+        CAASAssetRequest assetRequest = new CAASAssetRequest(suggestImgURL, Imgcallback);
         caasService.executeRequest(assetRequest);
         Log.d("ASSET", "after execute" );
 
-        /**
+
+
+
         // Mobile Client Access
-        mobile = new MobileFirst(getApplicationContext());
         mobile.setMobileFirstListener(new MobileFirstListener() {
             // Current weather conditions
             @Override
@@ -241,6 +236,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+
+
+        /**
         // Location history
         SharedPreferences history = getPreferences(Context.MODE_PRIVATE);
 
@@ -356,7 +354,15 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+        ImageView imgNavigate = (ImageView) findViewById(R.id.image_navigate);
+        imgNavigate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
+            }
+        });
+
+        /**
         // Navigation
         ImageView imgNavigate = (ImageView) findViewById(R.id.image_navigate);
         imgNavigate.setOnClickListener(new View.OnClickListener() {
@@ -366,6 +372,8 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        **/
 
         // Catalog
         LinearLayout layCatalog = (LinearLayout) findViewById(R.id.layout_catalog);
