@@ -110,7 +110,8 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:id="@+id/image_phrase"
-                    android:src="@drawable/weather_39" />
+                    android:src="@drawable/weather_39"
+                    android:visibility="invisible" />
 
                 <TextView
                     android:layout_width="wrap_content"

@@ -1,0 +1,81 @@
+"main@3589" prio=5 waiting
+  java.lang.Thread.State: WAITING
+	  at ibm.us.com.fashionx.MobileFirst.currentWeather(MobileFirst.java:134)
+	  at ibm.us.com.fashionx.MainActivity$2.onLocationChanged(MainActivity.java:142)
+	  at android.location.LocationManager$ListenerTransport._handleMessage(LocationManager.java:281)
+	  at android.location.LocationManager$ListenerTransport.access$000(LocationManager.java:210)
+	  at android.location.LocationManager$ListenerTransport$1.handleMessage(LocationManager.java:226)
+	  at android.os.Handler.dispatchMessage(Handler.java:102)
+	  at android.os.Looper.loop(Looper.java:135)
+	  at android.app.ActivityThread.main(ActivityThread.java:5254)
+	  at java.lang.reflect.Method.invoke(Method.java:-1)
+	  at java.lang.reflect.Method.invoke(Method.java:372)
+	  at com.android.internal.os.ZygoteInit$MethodAndArgsCaller.run(ZygoteInit.java:903)
+	  at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:698)
+
+"OkHttp http://aweatherdemo.mybluemix.net/getCurrentWeather?lat=29.0&long=-115.0@4109" prio=5 waiting
+  java.lang.Thread.State: WAITING
+	  at ibm.us.com.fashionx.MobileFirst$1.onSuccess(MobileFirst.java:74)
+	  at com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request$1.onResponse(Request.java:249)
+	  at com.squareup.okhttp.Call$AsyncCall.execute(Call.java:170)
+	  at com.squareup.okhttp.internal.NamedRunnable.run(NamedRunnable.java:33)
+	  at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1112)
+	  at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:587)
+	  at java.lang.Thread.run(Thread.java:818)
+
+"Signal Catcher@3830" daemon prio=5 waiting
+  java.lang.Thread.State: WAITING
+	 Incompatible thread state: thread not suspended
+
+"GCDaemon@3831" daemon prio=5 waiting
+  java.lang.Thread.State: WAITING
+	 Incompatible thread state: thread not suspended
+
+"HeapTrimmerDaemon@3832" daemon prio=5 waiting
+  java.lang.Thread.State: WAITING
+	 Incompatible thread state: thread not suspended
+
+"Binder_1@3833" prio=5 runnable
+  java.lang.Thread.State: RUNNABLE
+	 Incompatible thread state: thread not suspended
+
+"ReferenceQueueDaemon@3834" daemon prio=5 waiting
+  java.lang.Thread.State: WAITING
+	 Incompatible thread state: thread not suspended
+
+"FinalizerDaemon@3835" daemon prio=5 waiting
+  java.lang.Thread.State: WAITING
+	 Incompatible thread state: thread not suspended
+
+"FinalizerWatchdogDaemon@3836" daemon prio=5 waiting
+  java.lang.Thread.State: WAITING
+	 Incompatible thread state: thread not suspended
+
+"Binder_2@3837" prio=5 runnable
+  java.lang.Thread.State: RUNNABLE
+	 Incompatible thread state: thread not suspended
+
+"pool-1-thread-1@3673" prio=5 waiting
+  java.lang.Thread.State: WAITING
+	 Incompatible thread state: thread not suspended
+
+"AsyncTask #1@3983" prio=5 waiting
+  java.lang.Thread.State: WAITING
+	 Incompatible thread state: thread not suspended
+
+"RenderThread@3994" prio=5 runnable
+  java.lang.Thread.State: RUNNABLE
+	 Incompatible thread state: thread not suspended
+
+"pool-2-thread-1@4156" prio=5 waiting
+  java.lang.Thread.State: WAITING
+	 Incompatible thread state: thread not suspended
+
+"Okio Watchdog@4162" daemon prio=5 waiting
+  java.lang.Thread.State: WAITING
+	 Incompatible thread state: thread not suspended
+
+"OkHttp ConnectionPool@4181" daemon prio=5 waiting
+  java.lang.Thread.State: WAITING
+	 Incompatible thread state: thread not suspended
+

@@ -81,14 +81,14 @@ public class MainActivity extends AppCompatActivity {
                         MobileFirstWeather weather = bundle.getParcelable("weather");
 
                         // Temperature
-                        concat = weather.temperature + "°";
+                        concat = weather.temperature + "°C";
                         TextView txtTemperature = (TextView) findViewById(R.id.text_temperature);
                         txtTemperature.setText(concat);
 
                         // Icon
                         ImageView       imgPhrase = (ImageView) findViewById(R.id.image_phrase);
                         DownloadTask    task = new DownloadTask(imgPhrase);
-                        task.execute(weather.path);
+                        //task.execute(weather.path);
 
                         // Phrase
                         TextView txtPhrase = (TextView) findViewById(R.id.text_phrase);
@@ -98,35 +98,17 @@ public class MainActivity extends AppCompatActivity {
                         if(weather.maximum == 9999) {
                             concat = "--";
                         } else {
-                            concat = weather.maximum + "°";
+                            concat = weather.maximum + "°C";
                         }
 
                         TextView txtMaximum = (TextView) findViewById(R.id.text_maximum);
                         txtMaximum.setText(concat);
 
                         // Minimum
-                        concat = weather.minimum + "°";
+                        concat = weather.minimum + "°C";
                         TextView txtMinimum = (TextView) findViewById(R.id.text_minimum);
                         txtMinimum.setText(concat);
 
-                        break;
-
-                    case "suggest":
-                        //suggestImgURL = rainImageURL;
-                        suggestContent = bundle.getParcelable("suggest");
-                        suggestContentList = suggestContent.caasContentItemsList.getContentItems();
-                        for(CAASContentItem item :suggestContentList){
-                            if (item.getTitle().equals("Snow") ){
-                                suggestImgURL = item.getElement("Image").toString();
-                            }
-                        }
-                        Log.d("HANDLE SUGGEST", "after suggest" + suggestImgURL );
-                        break;
-
-                    case "draw":
-                         suggestdrawable = ((MobileContentItem)bundle.getParcelable("draw")).drawable;
-                         imgSuggest.setImageDrawable(suggestdrawable );
-                         Log.d("HANDLE DRAW", "after DRAW"  );
                         break;
                 }
 
@@ -136,10 +118,56 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+        LocationListener locationMonitor = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                if(ContextCompat.checkSelfPermission(getApplicationContext(), "android.permission.ACCESS_COARSE_LOCATION") == PackageManager.PERMISSION_GRANTED) {
+                    Log.d("MAIN", "Remove location monitor.");
+                }
+
+                // Just once
+                //gps.removeUpdates(this);
+
+                float latitude = (float) location.getLatitude();
+                float longitude = (float) location.getLongitude();
+
+                // Store on device
+                SharedPreferences history = getPreferences(Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = history.edit();
+                editor.putFloat("latitude", latitude);
+                editor.putFloat("longitude", longitude);
+                editor.apply();
+
+                // Request weather
+                mobile.currentWeather(latitude, longitude);
+                currentWeather = mobile.getWeather();
+                Log.d("onLocationChanged", latitude + " "+ longitude);
+
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+                ;
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+                ;
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+                ;
+            }
+        };
+
+        gps = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        gps.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationMonitor);
+
+
         mobile = new MobileFirst(getApplicationContext());
 
         currentWeather = new MobileFirstWeather();
-        currentWeather.phrase = "Sun";
 
         content = new MobileContent(
                 getApplicationContext().getString(R.string.macm_server),
@@ -151,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
 
         caasService = content.getService();
 
-        CAASDataCallback callback =  new CAASDataCallback<CAASContentItemsList>() {
+        final CAASDataCallback CAASContentCallback =  new CAASDataCallback<CAASContentItemsList>() {
              @Override
              public void onSuccess(CAASRequestResult<CAASContentItemsList> requestResult) {
 
@@ -183,44 +211,14 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        CAASContentItemsRequest request = new CAASContentItemsRequest(callback);
-        String path = "InterConnect2016/content types/Fashion";
+
+        CAASContentItemsRequest request = new CAASContentItemsRequest(CAASContentCallback);
+        String path = getApplicationContext().getString(R.string.macm_path);
         request.setPath(path);
         request.addElements("Image");
         caasService.executeRequest(request);
         Log.d("CONTENT", "after execute" );
 
-        final CAASDataCallback<byte[]> Imgcallback = new CAASDataCallback<byte[]>() {
-            @Override
-            public void onSuccess(CAASRequestResult<byte[]> requestResult) {
-                byte[] bytes = requestResult.getResult();
-
-                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                BitmapDrawable drawable = new BitmapDrawable(
-                        getApplicationContext().getResources(),
-                        bitmap
-                );
-
-                /**
-                    MobileContentItem contentItem = new MobileContentItem();
-                    contentItem.drawable = drawable;
-                    Bundle bundle = new Bundle();
-                    Message message = new Message();
-                    bundle.putString("action", "draw");
-                    bundle.putParcelable("draw", contentItem);
-                    message.setData(bundle);
-                 **/
-
-                imgSuggest.setImageDrawable(drawable);
-                //handler.sendMessage(message);
-                Log.d("Asset", "Image success: " );
-            }
-
-            @Override
-            public void onError(CAASErrorResult error) {
-                Log.e("Asset", "Image failed: " + error.getMessage());
-            }
-        };
 
 
         /**
@@ -245,7 +243,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
+        /**
         // Location history
         SharedPreferences history = getPreferences(Context.MODE_PRIVATE);
 
@@ -255,67 +253,66 @@ public class MainActivity extends AppCompatActivity {
 
             // Weather from cached location
             mobile.currentWeather(latitude, longitude);
+
         }
+        **/
 
         // Current location
-        if(ContextCompat.checkSelfPermission(getApplicationContext(), "android.permission.ACCESS_COARSE_LOCATION") == PackageManager.PERMISSION_GRANTED) {
-            Log.d("MAIN", "Add location monitor.");
-        }
+        //if(ContextCompat.checkSelfPermission(getApplicationContext(), "android.permission.ACCESS_COARSE_LOCATION") == PackageManager.PERMISSION_GRANTED) {
+        //    Log.d("MAIN", "Add location monitor.");
+        //}
 
-        LocationListener locationMonitor = new LocationListener() {
+
+        final CAASDataCallback<byte[]> CAASImgcallback = new CAASDataCallback<byte[]>() {
             @Override
-            public void onLocationChanged(Location location) {
-                if(ContextCompat.checkSelfPermission(getApplicationContext(), "android.permission.ACCESS_COARSE_LOCATION") == PackageManager.PERMISSION_GRANTED) {
-                    Log.d("MAIN", "Remove location monitor.");
-                }
+            public void onSuccess(CAASRequestResult<byte[]> requestResult) {
+                byte[] bytes = requestResult.getResult();
 
-                // Just once
-                gps.removeUpdates(this);
+                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                BitmapDrawable drawable = new BitmapDrawable(
+                        getApplicationContext().getResources(),
+                        bitmap
+                );
 
-                float latitude = (float) location.getLatitude();
-                float longitude = (float) location.getLongitude();
+                /**
+                 MobileContentItem contentItem = new MobileContentItem();
+                 contentItem.drawable = drawable;
+                 Bundle bundle = new Bundle();
+                 Message message = new Message();
+                 bundle.putString("action", "draw");
+                 bundle.putParcelable("draw", contentItem);
+                 message.setData(bundle);
+                 **/
 
-                // Store on device
-                SharedPreferences history = getPreferences(Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = history.edit();
-                editor.putFloat("latitude", latitude);
-                editor.putFloat("longitude", longitude);
-                editor.apply();
-
-                // Request weather
-                mobile.currentWeather(latitude, longitude);
-                Log.d("onLoacationChanged", latitude + " "+ longitude);
-
+                imgSuggest.setImageDrawable(drawable);
+                //handler.sendMessage(message);
+                Log.d("Asset", "Image success: " );
             }
 
             @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-                ;
-            }
-
-            @Override
-            public void onProviderEnabled(String provider) {
-                ;
-            }
-
-            @Override
-            public void onProviderDisabled(String provider) {
-                ;
+            public void onError(CAASErrorResult error) {
+                Log.e("Asset", "Image failed: " + error.getMessage());
             }
         };
-
-        gps = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        gps.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationMonitor);
-
 
 
         ImageView imgNavigate = (ImageView) findViewById(R.id.image_navigate);
         imgNavigate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                CAASAssetRequest assetRequest = new CAASAssetRequest(suggestImgURL, Imgcallback);
+
+                CAASAssetRequest assetRequest = new CAASAssetRequest(suggestImgURL, CAASImgcallback);
                 caasService.executeRequest(assetRequest);
-                Log.d("ASSET", "after execute" );
+                Log.d("onClick", "CAASAssetRequest after execute" );
+
+                Bundle bundle = new Bundle();
+                Message message = new Message();
+                bundle.putString("action", "weather");
+                bundle.putParcelable("weather", currentWeather);
+                message.setData(bundle);
+                handler.sendMessage(message);
+                Log.d("onClick", "handler.sendMessage(currentWeather)" );
+
             }
         });
 

@@ -10,5 +10,6 @@
     <string name="macm_instance">vp6517</string>
     <string name="macm_api_id">1213035504176517</string>
     <string name="macm_api_password">eHxdh)(164</string>
+    <string name="macm_path">InterConnect2016/content types/Fashion</string>
     <string name="weatherEndpoint">http://aweatherdemo.mybluemix.net/getCurrentWeather</string>
 </resources>

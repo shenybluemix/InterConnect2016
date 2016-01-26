@@ -13,7 +13,9 @@ public class MobileFirstWeather implements Parcelable {
     //Sun, Snow, Rain
     public String   phrase;
 
-    public MobileFirstWeather() {;}
+    public MobileFirstWeather() {
+        phrase = "Dummy";
+    }
 
     private MobileFirstWeather(Parcel in) {
         temperature = in.readInt();

@@ -25,6 +25,7 @@ public class MobileFirst {
     private ArrayList<MobileFirstListener> observers;
     private String weatherEndpoint;
     private Context context;
+    private MobileFirstWeather weather;
 
     public MobileFirst(Context applicationContext) {
         observers = new ArrayList<>();
@@ -42,12 +43,14 @@ public class MobileFirst {
         }
 
         weatherEndpoint = context.getString(R.string.weatherEndpoint);
+        weather = new MobileFirstWeather();
+        weather.phrase = "Dummy";
     }
 
 
 
     // Current conditions from Weather Insights
-    // Chris - get currentWeather from /api/weather according the current location
+    // Chris - get currentWeather from according the current location
     public void currentWeather(float latitude, float longitude) {
         // Protected (authenticated resource)
 
@@ -63,44 +66,51 @@ public class MobileFirst {
 
                 JSONArray           days;
                 JSONObject          data;
-                JSONObject          weather;
+                //JSONObject          weather;
                 JSONObject          forecast;
                 JSONObject          observed;
-                JSONObject          imperial;
+                JSONObject          metric;
                 JSONObject          today;
-                MobileFirstWeather  currWeather;
+                MobileFirstWeather  currWeather = new MobileFirstWeather();
 
                 try {
                     data = new JSONObject(response.getResponseText());
 
                     // Get pertinent objects
-                    weather = data.getJSONObject("current");
-                    observed = weather.getJSONObject("observation");
-                    imperial = observed.getJSONObject("imperial");
+                    //weather = data.getJSONObject("current");
+                    observed = data.getJSONObject("observation");
+                    //imperial = observed.getJSONObject("imperial");
 
-                    forecast = data.getJSONObject("forecast");
-                    days = forecast.getJSONArray("forecasts");
-                    today = days.getJSONObject(0);
+                    //forecast = data.getJSONObject("forecast");
+                    //days = forecast.getJSONArray("forecasts");
+                    //today = days.getJSONObject(0);
 
                     // Populate weather results
-                    currWeather = new MobileFirstWeather();
+
                     currWeather.icon = observed.getInt("icon_code");
+                    /*
                     currWeather.path =
                         BMSClient.getInstance().getBluemixAppRoute() +
                         "/public/weathericons/icon" +
                                 currWeather.icon +
                         ".png";
-                    currWeather.temperature = imperial.getInt("temp");
+                    **/
+                    //currWeather.temperature = imperial.getInt("temp");
                     currWeather.phrase = observed.getString("phrase_12char");
 
                     // Maximum may be null after peak of day
-                    if(today.isNull("max_temp")) {
-                        currWeather.maximum = 9999;
-                    } else {
-                        currWeather.maximum = today.getInt("max_temp");
-                    }
+                    //if(today.isNull("max_temp")) {
+                    //    currWeather.maximum = 9999;
+                    //} else {
 
-                    currWeather.minimum = today.getInt("min_temp");
+                    metric = observed.getJSONObject("metric");
+                    currWeather.temperature = metric.getInt("temp");
+                    currWeather.maximum = metric.getInt("temp_max_24hour");
+                    //}
+
+                    currWeather.minimum = metric.getInt("temp_min_24hour");
+
+                    weather = currWeather;
 
                     //Chris ?????????
                     for(MobileFirstListener observer : observers) {
@@ -119,11 +129,14 @@ public class MobileFirst {
                 if (response == null){
                     Log.e("MOBILEFIRST", "reponse is null, request not reaching server??");
                 }
-
                 Log.e("MOBILEFIRST", "Fail: " + response.toString()+"\n") ;
                 Log.e("MOBILEFIRST", "Fail: " + extendedInfo) ;
             }
         });
+    }
+
+    public MobileFirstWeather getWeather(){
+        return weather;
     }
 
     public void setMobileFirstListener(MobileFirstListener observer) {
