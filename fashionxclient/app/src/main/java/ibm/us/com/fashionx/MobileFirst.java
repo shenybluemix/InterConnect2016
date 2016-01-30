@@ -8,6 +8,11 @@ import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.ResponseListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPush;
+import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPushException;
+import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPushNotificationListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPushResponseListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPSimplePushNotification;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,12 +31,15 @@ public class MobileFirst {
     private String weatherEndpoint;
     private Context context;
     private MobileFirstWeather weather;
+    private MFPPush push;
+    private MFPPushNotificationListener notificationListener;
+
 
     public MobileFirst(Context applicationContext) {
         observers = new ArrayList<>();
         context = applicationContext;
 
-        // Authenticate mobile client access (MCA)
+        // Initialize Mobilefirst Core Service
         try {
             BMSClient.getInstance().initialize(
                     context,
@@ -44,25 +52,55 @@ public class MobileFirst {
 
         weatherEndpoint = context.getString(R.string.weatherEndpoint);
         weather = new MobileFirstWeather();
-        weather.phrase = "Dummy";
+
+        //Initialize Push Notification Service
+        push = MFPPush.getInstance();
+        push.initialize(context);
+
+        push.register(new MFPPushResponseListener<String>() {
+            @Override
+            public void onSuccess(String response) {
+                Log.d("PUSH", "Push service connection succeed \n");
+            }
+
+            @Override
+            public void onFailure(MFPPushException exception) {
+                Log.d("PUSH", "Push service connection failed \n" );
+
+            }
+        });
+
+        //Register the push notification listener to push serivce
+        notificationListener = new MFPPushNotificationListener() {
+
+            @Override
+            public void onReceive(MFPSimplePushNotification mfpSimplePushNotification) {
+                //to do OnReceive a new content is created from MACM
+
+                Log.d("PUSH","payload: "+ mfpSimplePushNotification.getPayload());
+                Log.d("PUSH","Alert: "+ mfpSimplePushNotification.getAlert());
+
+            }
+        };
+
+        push.listen(notificationListener);
     }
 
 
 
     // Current conditions from Weather Insights
     // Chris - get currentWeather from according the current location
-    public void currentWeather(float latitude, float longitude) {
+    public void currentWeather(final float latitude, final float longitude) {
         // Protected (authenticated resource)
 
         Request weatherRequest = new Request( weatherEndpoint, Request.GET);
 
         weatherRequest.setQueryParameter("lat", String.valueOf(latitude));
         weatherRequest.setQueryParameter("long", String.valueOf(longitude));
-
         weatherRequest.send(context,new ResponseListener() {
             @Override
             public void onSuccess(Response response) {
-                Log.d("weatherRequest", response.getResponseText());
+                Log.d("weatherRequest", " " + response.getStatus());
 
                 JSONArray           days;
                 JSONObject          data;
@@ -72,20 +110,11 @@ public class MobileFirst {
                 JSONObject          metric;
                 JSONObject          today;
                 MobileFirstWeather  currWeather = new MobileFirstWeather();
-
+                currWeather.latitude = latitude;
+                currWeather.longitude = longitude;
                 try {
                     data = new JSONObject(response.getResponseText());
-
-                    // Get pertinent objects
-                    //weather = data.getJSONObject("current");
                     observed = data.getJSONObject("observation");
-                    //imperial = observed.getJSONObject("imperial");
-
-                    //forecast = data.getJSONObject("forecast");
-                    //days = forecast.getJSONArray("forecasts");
-                    //today = days.getJSONObject(0);
-
-                    // Populate weather results
 
                     currWeather.icon = observed.getInt("icon_code");
                     /*
@@ -93,29 +122,23 @@ public class MobileFirst {
                         BMSClient.getInstance().getBluemixAppRoute() +
                         "/public/weathericons/icon" +
                                 currWeather.icon +
+                                currWeather.icon +
                         ".png";
                     **/
-                    //currWeather.temperature = imperial.getInt("temp");
-                    currWeather.phrase = observed.getString("phrase_12char");
-
-                    // Maximum may be null after peak of day
-                    //if(today.isNull("max_temp")) {
-                    //    currWeather.maximum = 9999;
-                    //} else {
+                    currWeather.rawPhrase = observed.getString("phrase_12char");
+                    currWeather.convertPhrase();
 
                     metric = observed.getJSONObject("metric");
                     currWeather.temperature = metric.getInt("temp");
                     currWeather.maximum = metric.getInt("temp_max_24hour");
-                    //}
-
                     currWeather.minimum = metric.getInt("temp_min_24hour");
 
                     weather = currWeather;
-
+                    return;
                     //Chris ?????????
-                    for(MobileFirstListener observer : observers) {
-                        observer.onCurrent(currWeather);
-                    }
+                    //for(MobileFirstListener observer : observers) {
+                    //    observer.onCurrent(currWeather);
+                    //}
                     //???????????
 
                 } catch(JSONException jsone) {
@@ -136,9 +159,17 @@ public class MobileFirst {
     }
 
     public MobileFirstWeather getWeather(){
-        return weather;
+        return this.weather;
     }
 
+    public MFPPush getPush(){
+        return  this.push;
+
+    }
+
+    public MFPPushNotificationListener getNotificationListener(){
+        return this.notificationListener;
+    }
     public void setMobileFirstListener(MobileFirstListener observer) {
         observers.add(observer);
     }

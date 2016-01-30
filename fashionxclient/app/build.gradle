@@ -33,11 +33,12 @@ dependencies {
 
     // MobileFirst
     compile 'com.ibm.mobilefirstplatform.clientsdk.android:core:1.1.0'
+    compile 'com.ibm.mobilefirstplatform.clientsdk.android:push:1.+'
 
     // MACM
     compile project(':MACM-SDK-android-release')
 
-    //Google Play API - Location
+    //Google play services
     compile 'com.google.android.gms:play-services:8.4.0'
 
     // Weak handler
