@@ -24,6 +24,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.net.Uri;
 import com.badoo.mobile.util.WeakHandler;
+import com.google.android.gms.games.internal.notification.GameNotification;
 import com.ibm.caas.CAASContentItem;
 import com.ibm.caas.CAASContentItemsList;
 import com.ibm.caas.CAASAssetRequest;
@@ -34,6 +35,8 @@ import com.ibm.caas.CAASErrorResult;
 import com.ibm.caas.CAASService;
 import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPush;
 import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPushNotificationListener;
+import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPSimplePushNotification;
+import com.ibm.watson.developer_cloud.speech_to_text.v1.SpeechToText;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -53,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private CAASService     caasService;
     private String suggestImgURL;
 
-
+    protected GenericCache genericCache;
 
     //String rainImageURL = "https://macm.saas.ibmcloud.com/wps/wcm/myconnect/vp6517/c7a55647-577a-4ca2-b1a2-b199b51b40f5/rain.jpeg?MOD=AJPERES";
 
@@ -119,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
+        GenericCache.getInstance().put("handler", handler);
 
         mobile = new MobileFirst(getApplicationContext());
         currentWeather = new MobileFirstWeather();
@@ -134,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
 
         caasService = content.getService();
 
+        GenericCache.getInstance().put("caasService", caasService);
 
         final CAASDataCallback<byte[]> CAASImgcallback = new CAASDataCallback<byte[]>() {
             @Override
@@ -159,8 +163,10 @@ public class MainActivity extends AppCompatActivity {
         final CAASDataCallback CAASContentCallback =  new CAASDataCallback<CAASContentItemsList>() {
             @Override
             public void onSuccess(CAASRequestResult<CAASContentItemsList> requestResult) {
+                currentWeather = mobile.getWeather();
                 List<CAASContentItem> CAASConentItemList = requestResult.getResult().getContentItems();
                 for (CAASContentItem tempItem: CAASConentItemList){
+
                     if (tempItem.getTitle().equals(currentWeather.phrase)){
                         suggestImgURL = tempItem.getElement("Image");
                         Log.d("CONTENT", "OnSuccess: " + suggestImgURL );
@@ -181,11 +187,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-
-        final CAASContentItemsRequest contentRequest = new CAASContentItemsRequest(CAASContentCallback);
-        String path = getApplicationContext().getString(R.string.macm_path);
-        contentRequest.setPath(path);
-        contentRequest.addElements("Image");
+        GenericCache.getInstance().put("caasContentCallback",CAASContentCallback);
 
 
         locationMonitor = new LocationListener() {
@@ -207,18 +209,14 @@ public class MainActivity extends AppCompatActivity {
 
                 // Request weather
                 mobile.currentWeather(latitude, longitude);
-                currentWeather = mobile.getWeather();
-                Log.d("onLocationChanged", latitude + " "+ longitude+ "" + location.getTime());
 
-                Bundle bundle = new Bundle();
-                Message message = new Message();
-                bundle.putString("action", "weather");
-                bundle.putParcelable("weather", currentWeather);
-                message.setData(bundle);
-                handler.sendMessage(message);
+                //currentWeather(lat,long) may not be finished
 
-                caasService.executeRequest(contentRequest);
-                Log.d("onLocationChanged", "caasService after execute" );
+                //currentWeather = mobile.getWeather();
+                //Log.d("onLocationChanged", latitude + " "+ longitude+ "" + location.getTime());
+
+
+
             }
 
             @Override
@@ -253,11 +251,6 @@ public class MainActivity extends AppCompatActivity {
         }
         **/
 
-        // Current location
-        //if(ContextCompat.checkSelfPermission(getApplicationContext(), "android.permission.ACCESS_COARSE_LOCATION") == PackageManager.PERMISSION_GRANTED) {
-        //    Log.d("MAIN", "Add location monitor.");
-        //}
-
 
         ImageView imgNavigate = (ImageView) findViewById(R.id.image_navigate);
         imgNavigate.setOnClickListener(new View.OnClickListener() {
@@ -285,6 +278,10 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+
+        //SpeechToText s2tservice = new SpeechToText();
+        //s2tservice.setUsernameAndPassword();
     }
 
 
@@ -310,5 +307,6 @@ public class MainActivity extends AppCompatActivity {
             push.hold();
         }
     }
+
 
 }

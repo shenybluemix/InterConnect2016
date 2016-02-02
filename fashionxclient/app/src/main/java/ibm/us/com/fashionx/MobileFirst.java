@@ -1,9 +1,23 @@
 package ibm.us.com.fashionx;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.Bundle;
+import android.os.Message;
 import android.util.Log;
 import android.content.res.AssetManager;
 
+import com.badoo.mobile.util.WeakHandler;
+import com.ibm.caas.CAASAssetRequest;
+import com.ibm.caas.CAASContentItem;
+import com.ibm.caas.CAASContentItemsList;
+import com.ibm.caas.CAASContentItemsRequest;
+import com.ibm.caas.CAASDataCallback;
+import com.ibm.caas.CAASErrorResult;
+import com.ibm.caas.CAASRequestResult;
+import com.ibm.caas.CAASService;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Response;
@@ -20,6 +34,7 @@ import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.io.File;
 import java.util.concurrent.Exchanger;
@@ -27,7 +42,7 @@ import java.util.concurrent.Exchanger;
 public class MobileFirst {
 
     //Chris what is this Listener ArrayList for?
-    private ArrayList<MobileFirstListener> observers;
+    //private ArrayList<MobileFirstListener> observers;
     private String weatherEndpoint;
     private Context context;
     private MobileFirstWeather weather;
@@ -36,7 +51,7 @@ public class MobileFirst {
 
 
     public MobileFirst(Context applicationContext) {
-        observers = new ArrayList<>();
+        //observers = new ArrayList<>();
         context = applicationContext;
 
         // Initialize Mobilefirst Core Service
@@ -76,6 +91,60 @@ public class MobileFirst {
             @Override
             public void onReceive(MFPSimplePushNotification mfpSimplePushNotification) {
                 //to do OnReceive a new content is created from MACM
+                /**
+                final CAASDataCallback<byte[]> CAASImgcallback = new CAASDataCallback<byte[]>() {
+                    @Override
+                    public void onSuccess(CAASRequestResult<byte[]> requestResult) {
+                        byte[] bytes = requestResult.getResult();
+
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                        BitmapDrawable drawable = new BitmapDrawable(
+                                context.getResources(),
+                                bitmap
+                        );
+
+                        .setImageDrawable(drawable);
+                        Log.d("Asset", "Image success:" );
+                    }
+
+                    @Override
+                    public void onError(CAASErrorResult error) {
+                        Log.e("Asset", "Image failed: " + error.getMessage());
+                    }
+                };
+
+                final CAASDataCallback CAASContentCallback =  new CAASDataCallback<CAASContentItemsList>() {
+                    @Override
+                    public void onSuccess(CAASRequestResult<CAASContentItemsList> requestResult) {
+                        List<CAASContentItem> CAASConentItemList = requestResult.getResult().getContentItems();
+                        for (CAASContentItem tempItem: CAASConentItemList){
+                            if (tempItem.getTitle().equals(currentWeather.phrase)){
+                                suggestImgURL = tempItem.getElement("Image");
+                                Log.d("CONTENT", "OnSuccess: " + suggestImgURL );
+
+                                CAASAssetRequest assetRequest = new CAASAssetRequest(suggestImgURL, CAASImgcallback);
+                                caasService.executeRequest(assetRequest);
+
+                                return;
+                            }
+                        }
+
+
+                    }
+
+                    @Override
+                    public void onError(CAASErrorResult caasErrorResult) {
+                        Log.e("CONTENT", "onError" + caasErrorResult.getMessage());
+                    }
+                };
+
+
+                final CAASContentItemsRequest contentRequest = new CAASContentItemsRequest(CAASContentCallback);
+                String path = context.getString(R.string.macm_path_ads);
+                contentRequest.setPath(path);
+                contentRequest.addElements("Image");
+                **/
+
 
                 Log.d("PUSH","payload: "+ mfpSimplePushNotification.getPayload());
                 Log.d("PUSH","Alert: "+ mfpSimplePushNotification.getAlert());
@@ -134,6 +203,27 @@ public class MobileFirst {
                     currWeather.minimum = metric.getInt("temp_min_24hour");
 
                     weather = currWeather;
+                    Bundle bundle = new Bundle();
+                    Message message = new Message();
+                    bundle.putString("action", "weather");
+                    bundle.putParcelable("weather", weather);
+                    message.setData(bundle);
+                    WeakHandler handler = GenericCache.getInstance().get("handler");
+                    handler.sendMessage(message);
+
+                    CAASService caasService = GenericCache.getInstance().get("caasService");
+
+                    CAASDataCallback CAASContentCallback = GenericCache.getInstance().get("caasContentCallback");
+
+                    CAASContentItemsRequest contentRequest = new CAASContentItemsRequest(CAASContentCallback);
+                    String path = context.getString(R.string.macm_path);
+                    contentRequest.setPath(path);
+                    contentRequest.addElements("Image");
+
+                    caasService.executeRequest(contentRequest);
+                    Log.d("onLocationChanged", "caasService after execute" );
+
+
                     return;
                     //Chris ?????????
                     //for(MobileFirstListener observer : observers) {
@@ -159,19 +249,22 @@ public class MobileFirst {
     }
 
     public MobileFirstWeather getWeather(){
-        return this.weather;
+        return weather;
     }
 
     public MFPPush getPush(){
-        return  this.push;
+        return  push;
 
     }
 
     public MFPPushNotificationListener getNotificationListener(){
         return this.notificationListener;
     }
+
+    /**
     public void setMobileFirstListener(MobileFirstListener observer) {
         observers.add(observer);
     }
+     **/
 
 }
