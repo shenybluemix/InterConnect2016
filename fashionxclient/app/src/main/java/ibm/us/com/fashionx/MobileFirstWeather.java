@@ -35,11 +35,12 @@ public class MobileFirstWeather implements Parcelable {
         minimum = in.readInt();
         icon = in.readInt();
         path = in.readString();
+        rawPhrase = in.readString();
         phrase = in.readString();
     }
 
     //Chris -- Jan.27
-
+    //Mapping raw weather phrase getting from the weather API to three: RAIN/SNOW/SUN
     public void convertPhrase(){
         if (0 <= icon && icon <= 12){
             this.phrase = RAIN;
@@ -78,6 +79,11 @@ public class MobileFirstWeather implements Parcelable {
             this.phrase  = RAIN;
             return;
         }
+    }
+
+    public void convertPhraseBySentiment(String text){
+
+
     }
 
     public static final Parcelable.Creator<MobileFirstWeather> CREATOR = new Parcelable.Creator<MobileFirstWeather>() {

@@ -13,4 +13,5 @@
     <string name="macm_path">InterConnect2016/content types/Fashion</string>
     <string name="macm_path_ads">InterConnect2016/content types/Ads</string>
     <string name="weatherEndpoint">http://aweatherdemo.mybluemix.net/getCurrentWeather</string>
+    <string name="AlchemyLanguageAPIKey">5ab94ec0941683815255412438853a6fc32ae841</string>
 </resources>

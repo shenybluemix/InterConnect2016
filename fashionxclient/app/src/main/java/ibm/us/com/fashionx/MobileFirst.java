@@ -1,6 +1,7 @@
 package ibm.us.com.fashionx;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -27,6 +28,8 @@ import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPushException;
 import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPushNotificationListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPushResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPSimplePushNotification;
+import com.ibm.watson.developer_cloud.alchemy.v1.AlchemyLanguage;
+import com.ibm.watson.developer_cloud.alchemy.v1.model.DocumentSentiment;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,7 +37,9 @@ import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.io.File;
 import java.util.concurrent.Exchanger;
@@ -42,7 +47,7 @@ import java.util.concurrent.Exchanger;
 public class MobileFirst {
 
     //Chris what is this Listener ArrayList for?
-    //private ArrayList<MobileFirstListener> observers;
+
     private String weatherEndpoint;
     private Context context;
     private MobileFirstWeather weather;
@@ -91,60 +96,6 @@ public class MobileFirst {
             @Override
             public void onReceive(MFPSimplePushNotification mfpSimplePushNotification) {
                 //to do OnReceive a new content is created from MACM
-                /**
-                final CAASDataCallback<byte[]> CAASImgcallback = new CAASDataCallback<byte[]>() {
-                    @Override
-                    public void onSuccess(CAASRequestResult<byte[]> requestResult) {
-                        byte[] bytes = requestResult.getResult();
-
-                        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                        BitmapDrawable drawable = new BitmapDrawable(
-                                context.getResources(),
-                                bitmap
-                        );
-
-                        .setImageDrawable(drawable);
-                        Log.d("Asset", "Image success:" );
-                    }
-
-                    @Override
-                    public void onError(CAASErrorResult error) {
-                        Log.e("Asset", "Image failed: " + error.getMessage());
-                    }
-                };
-
-                final CAASDataCallback CAASContentCallback =  new CAASDataCallback<CAASContentItemsList>() {
-                    @Override
-                    public void onSuccess(CAASRequestResult<CAASContentItemsList> requestResult) {
-                        List<CAASContentItem> CAASConentItemList = requestResult.getResult().getContentItems();
-                        for (CAASContentItem tempItem: CAASConentItemList){
-                            if (tempItem.getTitle().equals(currentWeather.phrase)){
-                                suggestImgURL = tempItem.getElement("Image");
-                                Log.d("CONTENT", "OnSuccess: " + suggestImgURL );
-
-                                CAASAssetRequest assetRequest = new CAASAssetRequest(suggestImgURL, CAASImgcallback);
-                                caasService.executeRequest(assetRequest);
-
-                                return;
-                            }
-                        }
-
-
-                    }
-
-                    @Override
-                    public void onError(CAASErrorResult caasErrorResult) {
-                        Log.e("CONTENT", "onError" + caasErrorResult.getMessage());
-                    }
-                };
-
-
-                final CAASContentItemsRequest contentRequest = new CAASContentItemsRequest(CAASContentCallback);
-                String path = context.getString(R.string.macm_path_ads);
-                contentRequest.setPath(path);
-                contentRequest.addElements("Image");
-                **/
-
 
                 Log.d("PUSH","payload: "+ mfpSimplePushNotification.getPayload());
                 Log.d("PUSH","Alert: "+ mfpSimplePushNotification.getAlert());
@@ -225,11 +176,7 @@ public class MobileFirst {
 
 
                     return;
-                    //Chris ?????????
-                    //for(MobileFirstListener observer : observers) {
-                    //    observer.onCurrent(currWeather);
-                    //}
-                    //???????????
+
 
                 } catch(JSONException jsone) {
                     jsone.printStackTrace();
@@ -261,10 +208,6 @@ public class MobileFirst {
         return this.notificationListener;
     }
 
-    /**
-    public void setMobileFirstListener(MobileFirstListener observer) {
-        observers.add(observer);
-    }
-     **/
+
 
 }

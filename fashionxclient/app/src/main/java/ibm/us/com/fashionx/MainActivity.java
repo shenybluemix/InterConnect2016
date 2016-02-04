@@ -36,11 +36,15 @@ import com.ibm.caas.CAASService;
 import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPush;
 import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPushNotificationListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPSimplePushNotification;
+import com.ibm.watson.developer_cloud.alchemy.v1.AlchemyLanguage;
+import com.ibm.watson.developer_cloud.alchemy.v1.model.DocumentSentiment;
 import com.ibm.watson.developer_cloud.speech_to_text.v1.SpeechToText;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -55,8 +59,11 @@ public class MainActivity extends AppCompatActivity {
     private MobileFirstWeather  currentWeather;
     private CAASService     caasService;
     private String suggestImgURL;
+    private AlchemyLanguage alchemyService;
 
     protected GenericCache genericCache;
+
+
 
     //String rainImageURL = "https://macm.saas.ibmcloud.com/wps/wcm/myconnect/vp6517/c7a55647-577a-4ca2-b1a2-b199b51b40f5/rain.jpeg?MOD=AJPERES";
 
@@ -207,14 +214,8 @@ public class MainActivity extends AppCompatActivity {
                 editor.putFloat("longitude", longitude);
                 editor.apply();
 
-                // Request weather
+                // Request the current weather
                 mobile.currentWeather(latitude, longitude);
-
-                //currentWeather(lat,long) may not be finished
-
-                //currentWeather = mobile.getWeather();
-                //Log.d("onLocationChanged", latitude + " "+ longitude+ "" + location.getTime());
-
 
 
             }
@@ -226,7 +227,8 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onProviderEnabled(String provider) {
-                ;
+                //
+                //
             }
 
             @Override
@@ -257,6 +259,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Log.d("onClick", "onClick Fired" );
+                mobile.currentWeather(37, -122);
+
                 /**
                     Bundle bundle = new Bundle();
                     Message message = new Message();
@@ -266,6 +270,7 @@ public class MainActivity extends AppCompatActivity {
                     handler.sendMessage(message);
                     Log.d("onClick", "handler.sendMessage(currentWeather)" );
                 **/
+
             }
         });
 
@@ -276,8 +281,17 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, CatalogActivity.class);
                 startActivity(intent);
+
+                alchemyService = new AlchemyLanguage();
+                alchemyService.setApiKey("5ab94ec0941683815255412438853a6fc32ae841");
+                GenericCache.getInstance().put("AlchemySerivce", alchemyService);
+                Map<String,Object> params = new HashMap<String, Object>();
+                params.put(AlchemyLanguage.TEXT, "IBM Watson won the Jeopardy television show hosted by Alex Trebek");
+                DocumentSentiment sentiment = alchemyService.getSentiment(params);
+                Log.d("WatsonSentiment",sentiment.getText());
             }
         });
+
 
 
         //SpeechToText s2tservice = new SpeechToText();
