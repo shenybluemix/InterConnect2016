@@ -9,7 +9,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/MACM-SDK-android-release" />
-            <option value="$PROJECT_DIR$/WatsonS2Tsdk" />
+            <option value="$PROJECT_DIR$/STTexamples" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/speech-android-wrapper" />
           </set>
@@ -18,7 +18,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/MACM-SDK-android-release" />
-            <option value="$PROJECT_DIR$/WatsonS2Tsdk" />
+            <option value="$PROJECT_DIR$/STTexamples" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/speech-android-wrapper" />
           </set>

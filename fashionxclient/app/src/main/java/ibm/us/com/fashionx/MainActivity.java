@@ -30,10 +30,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.net.Uri;
 import com.badoo.mobile.util.WeakHandler;
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.games.internal.notification.GameNotification;
 import com.ibm.caas.CAASContentItem;
 import com.ibm.caas.CAASContentItemsList;
 import com.ibm.caas.CAASAssetRequest;
@@ -42,18 +38,19 @@ import com.ibm.caas.CAASDataCallback;
 import com.ibm.caas.CAASErrorResult;
 import com.ibm.caas.CAASService;
 
-import com.ibm.cio.watsonsdk.SpeechToText;
 import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPush;
 
-import com.ibm.watson.developer_cloud.android.speech_to_text.v1.dto.SpeechConfiguration;
 
 import com.ibm.watson.developer_cloud.alchemy.v1.AlchemyLanguage;
 import com.ibm.watson.developer_cloud.alchemy.v1.model.DocumentSentiment;
 import com.ibm.watson.developer_cloud.alchemy.v1.model.Sentiment;
-import com.ibm.watson.developer_cloud.
 
-
-
+import com.ibm.watson.developer_cloud.android.speech_common.v1.TokenProvider;
+import com.ibm.watson.developer_cloud.android.speech_to_text.v1.*;
+import com.ibm.watson.developer_cloud.android.speech_to_text.v1.SpeechToText;
+import com.ibm.watson.developer_cloud.android.speech_to_text.v1.dto.SpeechConfiguration;
+import com.ibm.watson.developer_cloud.android.speech_to_text.v1.opus.*;
+import com.ibm.watson.developer_cloud.android.speech_to_text.v1.audio.*;
 
 import java.io.File;
 import java.net.URI;
@@ -81,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
     protected GenericCache genericCache;
 
     protected MediaRecorder mediaRecorder;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -274,13 +272,19 @@ public class MainActivity extends AppCompatActivity {
 
 
                 try{
+
+                    //Using Android SpeechToText wrapper
+                    //WARNING! There are classes in JAVA SpeechToText SDK have the same name
+
                     URI uri = new URI("wss://stream.watsonplatform.net/speech-to-text/api/v1/recognize");
-
-
-
                     SpeechConfiguration sConfig = new SpeechConfiguration(SpeechConfiguration.AUDIO_FORMAT_OGGOPUS);
 
-                    SpeechToText.sharedInstance().initWithContext(uri,getApplicationContext());
+                    SpeechToText.sharedInstance().initWithContext(uri,getApplicationContext(),sConfig);
+
+                    String username = getApplicationContext().getString(R.string.SpeechToTextUserName);
+                    String pwd = getApplicationContext().getString(R.string.SpeechToTextPwd);
+
+                    SpeechToText.sharedInstance().setCredentials(username, pwd);
 
                 }
                 catch (URISyntaxException e){

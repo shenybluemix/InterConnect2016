@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/MACM-SDK-android-release/MACM-SDK-android-release.iml" filepath="$PROJECT_DIR$/MACM-SDK-android-release/MACM-SDK-android-release.iml" />
-      <module fileurl="file://$PROJECT_DIR$/WatsonS2Tsdk/WatsonS2Tsdk.iml" filepath="$PROJECT_DIR$/WatsonS2Tsdk/WatsonS2Tsdk.iml" />
+      <module fileurl="file://$PROJECT_DIR$/STTexamples/STTexamples.iml" filepath="$PROJECT_DIR$/STTexamples/STTexamples.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/fashionxclient.iml" filepath="$PROJECT_DIR$/fashionxclient.iml" />
       <module fileurl="file://$PROJECT_DIR$/speech-android-wrapper/speech-android-wrapper.iml" filepath="$PROJECT_DIR$/speech-android-wrapper/speech-android-wrapper.iml" />

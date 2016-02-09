@@ -1,1 +1,1 @@
-include ':app', ':MACM-SDK-android-release', ':WatsonS2Tsdk', ':speech-android-wrapper'
+include ':app', ':MACM-SDK-android-release', ':speech-android-wrapper', 'STTexamples'
