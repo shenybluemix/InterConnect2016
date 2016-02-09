@@ -65,6 +65,7 @@ public class MobileFirst {
                     context,
                     context.getString(R.string.bluemix_route),
                     context.getString(R.string.bluemix_guid)
+
             );
         } catch (MalformedURLException murle) {
             murle.printStackTrace();
@@ -172,7 +173,7 @@ public class MobileFirst {
                     contentRequest.addElements("Image");
 
                     caasService.executeRequest(contentRequest);
-                    Log.d("onLocationChanged", "caasService after execute" );
+                    Log.d("currentWeather", "caasService after execute" );
 
 
                     return;

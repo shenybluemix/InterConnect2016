@@ -11,10 +11,11 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:background="@color/primary">
+        android:background="@color/primary"
+        android:weightSum="1">
 
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="139dp"
             android:layout_height="wrap_content"
             android:text="@string/app_name"
             android:id="@+id/textView"
@@ -22,7 +23,7 @@
             android:textColor="@color/font_light"
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="16dp"
-            android:layout_weight="1" />
+            android:layout_weight="0.98" />
 
         <ImageView
             android:layout_width="56dp"
@@ -30,6 +31,7 @@
             android:id="@+id/image_navigate"
             android:src="@drawable/navigate"
             android:padding="16dp" />
+
     </LinearLayout>
 
     <FrameLayout
@@ -173,27 +175,19 @@
             <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="30dp"
-                android:id="@+id/imageView4"
-                android:src="@drawable/camera" />
+                android:id="@+id/image_record"
+                android:src="@drawable/record" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="CATALOG"
+                android:text="Talk with Watson"
                 android:id="@+id/textView3"
                 android:textColor="@color/font_light"
                 android:gravity="center_horizontal"
                 android:layout_marginTop="16dp"
                 android:textSize="17sp" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="CONCIERGE"
-                android:id="@+id/textView4"
-                android:textColor="@color/font_light"
-                android:gravity="center_horizontal"
-                android:textSize="17sp" />
         </LinearLayout>
     </LinearLayout>
 

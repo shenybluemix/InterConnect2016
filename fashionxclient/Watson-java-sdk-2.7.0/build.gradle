@@ -1,2 +1,0 @@
-configurations.maybeCreate("default")
-artifacts.add("default", file('java-sdk-2.7.0-jar-with-dependencies.jar'))

@@ -11,36 +11,53 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.AudioRecord;
 import android.media.Image;
+import android.media.MediaRecorder;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
+import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.net.Uri;
 import com.badoo.mobile.util.WeakHandler;
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.games.internal.notification.GameNotification;
 import com.ibm.caas.CAASContentItem;
 import com.ibm.caas.CAASContentItemsList;
 import com.ibm.caas.CAASAssetRequest;
 import com.ibm.caas.CAASRequestResult;
-import com.ibm.caas.CAASContentItemsRequest;
 import com.ibm.caas.CAASDataCallback;
 import com.ibm.caas.CAASErrorResult;
 import com.ibm.caas.CAASService;
+
+import com.ibm.cio.watsonsdk.SpeechToText;
 import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPush;
-import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPushNotificationListener;
-import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPSimplePushNotification;
+
+import com.ibm.watson.developer_cloud.android.speech_to_text.v1.dto.SpeechConfiguration;
+
 import com.ibm.watson.developer_cloud.alchemy.v1.AlchemyLanguage;
 import com.ibm.watson.developer_cloud.alchemy.v1.model.DocumentSentiment;
-import com.ibm.watson.developer_cloud.speech_to_text.v1.SpeechToText;
+import com.ibm.watson.developer_cloud.alchemy.v1.model.Sentiment;
+import com.ibm.watson.developer_cloud.
 
+
+
+
+import java.io.File;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,25 +65,22 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ImageView       imgSuggest;
+    private ImageView imgSuggest;
     private LocationManager gps;
     private LocationListener locationMonitor;
-    private WeakHandler     handler;
+    private WeakHandler handler;
 
 
-    private MobileFirst     mobile;
-    private MobileContent   content;
-    private MobileFirstWeather  currentWeather;
-    private CAASService     caasService;
+    private MobileFirst mobile;
+    private MobileContent content;
+    private MobileFirstWeather currentWeather;
+    private CAASService caasService;
     private String suggestImgURL;
     private AlchemyLanguage alchemyService;
 
     protected GenericCache genericCache;
 
-
-
-    //String rainImageURL = "https://macm.saas.ibmcloud.com/wps/wcm/myconnect/vp6517/c7a55647-577a-4ca2-b1a2-b199b51b40f5/rain.jpeg?MOD=AJPERES";
-
+    protected MediaRecorder mediaRecorder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
                 bundle = message.getData();
                 action = bundle.getString("action");
 
-                switch(action) {
+                switch (action) {
                     case "weather":
                         // Results
                         MobileFirstWeather weather = bundle.getParcelable("weather");
@@ -99,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
                         txtTemperature.setText(concat);
 
                         // Icon
-                        ImageView       imgPhrase = (ImageView) findViewById(R.id.image_phrase);
+                        ImageView imgPhrase = (ImageView) findViewById(R.id.image_phrase);
                         //DownloadTask    task = new DownloadTask(imgPhrase);
                         //task.execute(weather.path);
 
@@ -108,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
                         txtPhrase.setText(weather.phrase);
 
                         // Maximum
-                        if(weather.maximum == 9999) {
+                        if (weather.maximum == 9999) {
                             concat = "--";
                         } else {
                             concat = weather.maximum + "°C";
@@ -121,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
                         concat = weather.minimum + "°C";
                         TextView txtMinimum = (TextView) findViewById(R.id.text_minimum);
                         txtMinimum.setText(concat);
-                        Log.d("onLocationChanged","handler" + weather.temperature +" "+weather.latitude + " "+weather.longitude);
+                        Log.d("onLocationChanged", "handler" + weather.temperature + " " + weather.latitude + " " + weather.longitude);
                         break;
                 }
 
@@ -158,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
                 );
 
                 imgSuggest.setImageDrawable(drawable);
-                Log.d("Asset", "Image success:" );
+                Log.d("Asset", "Image success:");
             }
 
             @Override
@@ -167,16 +181,16 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        final CAASDataCallback CAASContentCallback =  new CAASDataCallback<CAASContentItemsList>() {
+        final CAASDataCallback CAASContentCallback = new CAASDataCallback<CAASContentItemsList>() {
             @Override
             public void onSuccess(CAASRequestResult<CAASContentItemsList> requestResult) {
                 currentWeather = mobile.getWeather();
                 List<CAASContentItem> CAASConentItemList = requestResult.getResult().getContentItems();
-                for (CAASContentItem tempItem: CAASConentItemList){
+                for (CAASContentItem tempItem : CAASConentItemList) {
 
-                    if (tempItem.getTitle().equals(currentWeather.phrase)){
+                    if (tempItem.getTitle().equals(currentWeather.phrase)) {
                         suggestImgURL = tempItem.getElement("Image");
-                        Log.d("CONTENT", "OnSuccess: " + suggestImgURL );
+                        Log.d("CONTENT", "OnSuccess: " + suggestImgURL);
 
                         CAASAssetRequest assetRequest = new CAASAssetRequest(suggestImgURL, CAASImgcallback);
                         caasService.executeRequest(assetRequest);
@@ -186,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
 
-             }
+            }
 
             @Override
             public void onError(CAASErrorResult caasErrorResult) {
@@ -194,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        GenericCache.getInstance().put("caasContentCallback",CAASContentCallback);
+        GenericCache.getInstance().put("caasContentCallback", CAASContentCallback);
 
 
         locationMonitor = new LocationListener() {
@@ -216,7 +230,6 @@ public class MainActivity extends AppCompatActivity {
 
                 // Request the current weather
                 mobile.currentWeather(latitude, longitude);
-
 
             }
 
@@ -240,36 +253,60 @@ public class MainActivity extends AppCompatActivity {
         gps = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         /**
-        // Location history
-        SharedPreferences history = getPreferences(Context.MODE_PRIVATE);
+         // Location history
+         SharedPreferences history = getPreferences(Context.MODE_PRIVATE);
 
-        if (history.contains("latitude")) {
-            float latitude = history.getFloat("latitude", 0);
-            float longitude = history.getFloat("longitude", 0);
+         if (history.contains("latitude")) {
+         float latitude = history.getFloat("latitude", 0);
+         float longitude = history.getFloat("longitude", 0);
 
-            // Weather from cached location
-            mobile.currentWeather(latitude, longitude);
+         // Weather from cached location
+         mobile.currentWeather(latitude, longitude);
 
-        }
-        **/
+         }
+         **/
+        
+
+        ImageView recordView = (ImageView) findViewById(R.id.image_record);
+        recordView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+                try{
+                    URI uri = new URI("wss://stream.watsonplatform.net/speech-to-text/api/v1/recognize");
+
+
+
+                    SpeechConfiguration sConfig = new SpeechConfiguration(SpeechConfiguration.AUDIO_FORMAT_OGGOPUS);
+
+                    SpeechToText.sharedInstance().initWithContext(uri,getApplicationContext());
+
+                }
+                catch (URISyntaxException e){
+                    Log.e("SpeechToText", e.getMessage() );
+                }
+
+
+
+            }
+        });
 
 
         ImageView imgNavigate = (ImageView) findViewById(R.id.image_navigate);
         imgNavigate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("onClick", "onClick Fired" );
-                mobile.currentWeather(37, -122);
-
+                Log.d("onClick", "onClick Fired");
                 /**
-                    Bundle bundle = new Bundle();
-                    Message message = new Message();
-                    bundle.putString("action", "weather");
-                    bundle.putParcelable("weather", currentWeather);
-                    message.setData(bundle);
-                    handler.sendMessage(message);
-                    Log.d("onClick", "handler.sendMessage(currentWeather)" );
-                **/
+                 Bundle bundle = new Bundle();
+                 Message message = new Message();
+                 bundle.putString("action", "weather");
+                 bundle.putParcelable("weather", currentWeather);
+                 message.setData(bundle);
+                 handler.sendMessage(message);
+                 Log.d("onClick", "handler.sendMessage(currentWeather)" );
+                 **/
 
             }
         });
@@ -282,20 +319,13 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, CatalogActivity.class);
                 startActivity(intent);
 
-                alchemyService = new AlchemyLanguage();
-                alchemyService.setApiKey("5ab94ec0941683815255412438853a6fc32ae841");
-                GenericCache.getInstance().put("AlchemySerivce", alchemyService);
-                Map<String,Object> params = new HashMap<String, Object>();
-                params.put(AlchemyLanguage.TEXT, "IBM Watson won the Jeopardy television show hosted by Alex Trebek");
-                DocumentSentiment sentiment = alchemyService.getSentiment(params);
-                Log.d("WatsonSentiment",sentiment.getText());
+                AlchemySentimentTask alchemyTask = new AlchemySentimentTask();
+                alchemyTask.execute("I feel good today");
+
+
             }
         });
 
-
-
-        //SpeechToText s2tservice = new SpeechToText();
-        //s2tservice.setUsernameAndPassword();
     }
 
 
@@ -307,8 +337,9 @@ public class MainActivity extends AppCompatActivity {
             push.listen(mobile.getNotificationListener());
         }
 
-        if(ContextCompat.checkSelfPermission(getApplicationContext(), "android.permission.ACCESS_COARSE_LOCATION") == PackageManager.PERMISSION_GRANTED) {
-            gps.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationMonitor);
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), "android.permission.ACCESS_COARSE_LOCATION") == PackageManager.PERMISSION_GRANTED) {
+            gps.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, locationMonitor);
+            gps.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,1000,0, locationMonitor);
         }
 
     }
@@ -322,5 +353,28 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    class AlchemySentimentTask extends AsyncTask<String, Void, Sentiment> {
+
+        DocumentSentiment docSentiment;
+
+        @Override
+        protected Sentiment doInBackground(String... params) {
+            alchemyService = new AlchemyLanguage();
+            alchemyService.setApiKey(getApplicationContext().getString(R.string.AlchemyLanguageAPIKey));
+            //GenericCache.getInstance().put("AlchemySerivce", alchemyService);
+            Map<String, Object> text = new HashMap<String, Object>();
+            text.put(AlchemyLanguage.TEXT, params);
+            docSentiment = alchemyService.getSentiment(text);
+            return docSentiment.getSentiment();
+        }
+
+        @Override
+        protected void onPostExecute(Sentiment Sentiment) {
+            GenericCache.getInstance().put("Sentiment",docSentiment.getSentiment());
+            Log.d("Sentiment", docSentiment.getSentiment().getType() + " " +docSentiment.getSentiment().getScore());
+        }
+
+    }
 
 }

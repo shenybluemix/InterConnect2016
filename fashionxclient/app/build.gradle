@@ -30,19 +30,50 @@ repositories {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    // MobileFirst SDK
-    compile 'com.ibm.mobilefirstplatform.clientsdk.android:core:1.1.0'
-    compile 'com.ibm.mobilefirstplatform.clientsdk.android:push:1.0.2'
     // MACM SDK
     compile project(':MACM-SDK-android-release')
-    //Watson SDK
-    compile 'com.ibm.watson.developer_cloud:java-sdk:2.6.0'
-    //Google play services
-    compile 'com.google.android.gms:play-services:8.4.0'
+    // MobileFirst SDK
+    //Watson JAVA SDK  https://github.com/watson-developer-cloud/java-sdk
     // Weak handler
+    //Google play services
+    //Watson S2T SDK https://github.com/watson-developer-cloud/speech-android-sdk
+    compile project(':WatsonS2Tsdk')
+    compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.ibm.mobilefirstplatform.clientsdk.android:core:1.1.0'
+    compile 'com.ibm.mobilefirstplatform.clientsdk.android:push:1.0.2'
+    compile 'com.ibm.watson.developer_cloud:java-sdk:2.6.0'
     compile 'com.badoo.mobile:android-weak-handler:1.1'
+    compile 'com.google.android.gms:play-services:8.4.0'
+    compile 'com.google.android.gms:play-services-auth:8.4.0'
+    compile 'com.google.android.gms:play-services-gcm:8.4.0'
+    compile project(':speech-android-wrapper')
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
