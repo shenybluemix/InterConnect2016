@@ -36,10 +36,6 @@
         "source": "/Users/chrisshen/AndroidStudioProjects/InterConnect2016/fashionxclient/STTexamples/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.0.0/res/layout/abc_list_menu_item_radio.xml"
     },
     {
-        "merged": "/Users/chrisshen/AndroidStudioProjects/InterConnect2016/fashionxclient/STTexamples/build/intermediates/res/merged/debug/layout/abc_screen_content_include.xml",
-        "source": "/Users/chrisshen/AndroidStudioProjects/InterConnect2016/fashionxclient/STTexamples/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.0.0/res/layout/abc_screen_content_include.xml"
-    },
-    {
         "merged": "/Users/chrisshen/AndroidStudioProjects/InterConnect2016/fashionxclient/STTexamples/build/intermediates/res/merged/debug/layout/abc_action_menu_layout.xml",
         "source": "/Users/chrisshen/AndroidStudioProjects/InterConnect2016/fashionxclient/STTexamples/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.0.0/res/layout/abc_action_menu_layout.xml"
     },

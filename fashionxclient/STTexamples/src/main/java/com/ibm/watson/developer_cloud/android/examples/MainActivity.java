@@ -176,8 +176,8 @@ public class MainActivity extends Activity {
         private boolean initSTT() {
 
             // DISCLAIMER: please enter your credentials or token factory in the lines below
-            String username = getString(R.string.defaultUsername);
-            String password = getString(R.string.defaultPassword);
+            String username = "7adcf764-e02d-4370-86fd-e03fa2bcfe1b";
+            String password = "f0Q8tmqpXLkF";
 
             String tokenFactoryURL = getString(R.string.defaultTokenFactory);
             String serviceURL = "wss://stream.watsonplatform.net/speech-to-text/api";
@@ -310,7 +310,7 @@ public class MainActivity extends Activity {
         }
 
         public void displayStatus(final String status) {
-            /*final Runnable runnableUi = new Runnable(){
+            final Runnable runnableUi = new Runnable(){
                 @Override
                 public void run() {
                     TextView textResult = (TextView)mView.findViewById(R.id.sttStatus);
@@ -321,7 +321,7 @@ public class MainActivity extends Activity {
                 public void run(){
                     mHandler.post(runnableUi);
                 }
-            }.start();*/
+            }.start();
         }
 
         /**
