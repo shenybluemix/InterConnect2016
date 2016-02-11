@@ -1,1 +1,1 @@
-include ':fashionx', ':MACM-SDK-android-release', ':speech-android-wrapper', 'STTexamples'
+include ':fashionx', ':MACM-SDK-android-release',  ':speech-android-wrapper'

@@ -203,9 +203,46 @@ public class MainActivity extends AppCompatActivity {
 
         GenericCache.getInstance().put("caasContentCallback", CAASContentCallback);
 
+
+        //Request voice capture
+        initSTT();
+        final TextView textRecord = (TextView)findViewById(R.id.text_record);
+        mHandler = new Handler();
+        LinearLayout layout = (LinearLayout) findViewById(R.id.layout_record);
+        layout.setOnClickListener(new View.OnClickListener() {
+            boolean mStartRecording = true;
+
+            @Override
+            public void onClick(View v) {
+                if (mStartRecording){
+                    mRecognitionResults = "";
+                    displayResult(mRecognitionResults);
+                    textRecord.setText("Stop recording");
+
+                    RecognizeTask task = new RecognizeTask();
+                    task.execute();
+                }
+                else   {
+                    SpeechToText.sharedInstance().stopRecognition();
+                    textRecord.setText("Record");
+                    Log.d("STT", "Stop Recording");
+
+                    AlchemySentimentTask sentimentTask = new AlchemySentimentTask();
+                    String str = GenericCache.getInstance().get("RecognitionResults");
+                    sentimentTask.execute(str);
+                }
+                mStartRecording = !mStartRecording;
+            }
+
+        });
+
+        //Request location update
+        gps = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         locationMonitor = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
+
+                Log.d("onLocationChanged" , location.getLongitude() + " " + location.getAltitude());
 
                 // Just once
                 //gps.removeUpdates(this);
@@ -222,7 +259,6 @@ public class MainActivity extends AppCompatActivity {
 
                 // Request the current weather
                 mobile.currentWeather(latitude, longitude);
-
             }
 
             @Override
@@ -241,9 +277,6 @@ public class MainActivity extends AppCompatActivity {
                 ;
             }
         };
-
-        gps = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
         /**
          // Location history
          SharedPreferences history = getPreferences(Context.MODE_PRIVATE);
@@ -257,54 +290,14 @@ public class MainActivity extends AppCompatActivity {
 
          }
          **/
-
-        initSTT();
-
-        mHandler = new Handler();
-
-        final TextView textRecord = (TextView)findViewById(R.id.text_record);
-
-        ImageView recordView = (ImageView) findViewById(R.id.image_record);
-
-        LinearLayout layout = (LinearLayout) findViewById(R.id.layout_record);
-
-        layout.setOnClickListener(new View.OnClickListener() {
-            boolean mStartRecording = true;
-
-            @Override
-            public void onClick(View v) {
-                if (mStartRecording){
-                    mRecognitionResults = "";
-                    displayResult(mRecognitionResults);
-                    textRecord.setText("Stop recording");
-                    RecognizeTask task = new RecognizeTask();
-                    task.execute();
-                }
-                else   {
-                    SpeechToText.sharedInstance().stopRecognition();
-                    textRecord.setText("Record");
-                    Log.d("STT", "stopRecording");
-
-                    AlchemySentimentTask alchemyTask = new AlchemySentimentTask();
-                    String str = GenericCache.getInstance().get("RecognitionResults");
-                    alchemyTask.execute(str);
-
-                }
-                mStartRecording = !mStartRecording;
-            }
-
-        });
-
-
         ImageView imgNavigate = (ImageView) findViewById(R.id.image_navigate);
         imgNavigate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.d("onClick", "imgNavigate Fired");
-
                 if (ContextCompat.checkSelfPermission(getApplicationContext(), "android.permission.ACCESS_COARSE_LOCATION") == PackageManager.PERMISSION_GRANTED) {
-                    gps.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, locationMonitor);
-                    gps.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,1000,0, locationMonitor);
+                    gps.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0, locationMonitor);
+                    gps.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,10000,0, locationMonitor);
                 }
             }
         });
@@ -329,12 +322,6 @@ public class MainActivity extends AppCompatActivity {
         if (push != null) {
             push.listen(mobile.getNotificationListener());
         }
-
-        if (ContextCompat.checkSelfPermission(getApplicationContext(), "android.permission.ACCESS_COARSE_LOCATION") == PackageManager.PERMISSION_GRANTED) {
-            gps.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, locationMonitor);
-            gps.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,1000,0, locationMonitor);
-        }
-
     }
 
     @Override
@@ -346,47 +333,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-    class AlchemySentimentTask extends AsyncTask<String, Void, Sentiment> {
-
-        DocumentSentiment docSentiment;
-
-        @Override
-        protected Sentiment doInBackground(String... params) {
-            alchemyService = new AlchemyLanguage();
-            alchemyService.setApiKey(getApplicationContext().getString(R.string.AlchemyLanguageAPIKey));
-            //GenericCache.getInstance().put("AlchemySerivce", alchemyService);
-            Map<String, Object> text = new HashMap<String, Object>();
-            text.put(AlchemyLanguage.TEXT, params);
-            docSentiment = alchemyService.getSentiment(text);
-            return docSentiment.getSentiment();
-        }
-
-        @Override
-        protected void onPostExecute(Sentiment Sentiment) {
-            GenericCache.getInstance().put("Sentiment",docSentiment.getSentiment());
-            displayResult("\n Sentiment: " + docSentiment.getSentiment().getType() + " " +docSentiment.getSentiment().getScore());
-            Log.d("Sentiment", docSentiment.getSentiment().getType() + " " +docSentiment.getSentiment().getScore());
-        }
-
-    }
-
-
-    class RecognizeTask extends AsyncTask <Void, Void, Void>{
-        @Override
-        protected Void doInBackground(Void... params) {
-            SpeechToText.sharedInstance().recognize();
-            Log.d("STT", "start recognize");
-            return null;
-        }
-    }
-
+    //Initialize SpeechToText Service
     private void initSTT(){
         try{
             //Using Android SpeechToText wrapper
             //WARNING! There are classes in JAVA SpeechToText SDK have the same name
-
-            URI uri = new URI("wss://stream.watsonplatform.net/speech-to-text/api");
+            URI uri = new URI(getApplicationContext().getString(R.string.SpeechToTextWebSocktURL));
             SpeechConfiguration sConfig = new SpeechConfiguration(SpeechConfiguration.AUDIO_FORMAT_OGGOPUS);
             SpeechToText.sharedInstance().initWithContext(uri,getApplicationContext(),sConfig);
 
@@ -404,7 +356,7 @@ public class MainActivity extends AppCompatActivity {
         return;
     }
 
-    // SpeechToText delegages ----------------------------------------------
+    // SpeechToText delegages implement onMessage() to parse JSON
     class SpeechDelegate implements ISpeechDelegate{
         String TAG = "STT";
 
@@ -467,9 +419,43 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+
         public void onAmplitude(double amplitude, double volume) {
             //Logger.e(TAG, "amplitude=" + amplitude + ", volume=" + volume);
         }
+    }
+
+    class RecognizeTask extends AsyncTask <Void, Void, Void>{
+        @Override
+        protected Void doInBackground(Void... params) {
+            SpeechToText.sharedInstance().recognize();
+            Log.d("STT", "start recognize");
+            return null;
+        }
+    }
+
+    class AlchemySentimentTask extends AsyncTask<String, Void, Sentiment> {
+
+        DocumentSentiment docSentiment;
+
+        @Override
+        protected Sentiment doInBackground(String... params) {
+            alchemyService = new AlchemyLanguage();
+            alchemyService.setApiKey(getApplicationContext().getString(R.string.AlchemyLanguageAPIKey));
+            //GenericCache.getInstance().put("AlchemySerivce", alchemyService);
+            Map<String, Object> text = new HashMap<String, Object>();
+            text.put(AlchemyLanguage.TEXT, params);
+            docSentiment = alchemyService.getSentiment(text);
+            return docSentiment.getSentiment();
+        }
+
+        @Override
+        protected void onPostExecute(Sentiment Sentiment) {
+            GenericCache.getInstance().put("Sentiment",docSentiment.getSentiment());
+            displayResult("\n Sentiment: " + docSentiment.getSentiment().getType() + " " +docSentiment.getSentiment().getScore());
+            Log.d("Sentiment", docSentiment.getSentiment().getType() + " " +docSentiment.getSentiment().getScore());
+        }
+
     }
 
     void displayResult(final String result) {

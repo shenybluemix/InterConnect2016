@@ -1,23 +1,14 @@
 package ibm.us.com.fashionx;
 
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
-import android.content.res.AssetManager;
 
 import com.badoo.mobile.util.WeakHandler;
-import com.ibm.caas.CAASAssetRequest;
-import com.ibm.caas.CAASContentItem;
-import com.ibm.caas.CAASContentItemsList;
+
 import com.ibm.caas.CAASContentItemsRequest;
 import com.ibm.caas.CAASDataCallback;
-import com.ibm.caas.CAASErrorResult;
-import com.ibm.caas.CAASRequestResult;
 import com.ibm.caas.CAASService;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
@@ -28,25 +19,15 @@ import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPushException;
 import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPushNotificationListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPushResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPSimplePushNotification;
-import com.ibm.watson.developer_cloud.alchemy.v1.AlchemyLanguage;
-import com.ibm.watson.developer_cloud.alchemy.v1.model.DocumentSentiment;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.io.File;
-import java.util.concurrent.Exchanger;
 
 public class MobileFirst {
 
-    //Chris what is this Listener ArrayList for?
 
     private String weatherEndpoint;
     private Context context;
@@ -72,6 +53,7 @@ public class MobileFirst {
         }
 
         weatherEndpoint = context.getString(R.string.weatherEndpoint);
+        //weatherEndpoint = "https://af733bc9-5e0c-45bf-acc8-1c2da952650a:pywHxplbI3@twcservice.mybluemix.net/api/weather/v2/observations/current";
         weather = new MobileFirstWeather();
 
         //Initialize Push Notification Service
@@ -116,12 +98,20 @@ public class MobileFirst {
 
         Request weatherRequest = new Request( weatherEndpoint, Request.GET);
 
+        //weatherRequest.setQueryParameter("units", "m");
+        //String geocode = String.valueOf(latitude) + "," + String.valueOf(longitude);
+        //weatherRequest.setQueryParameter("geocode", geocode);
+
         weatherRequest.setQueryParameter("lat", String.valueOf(latitude));
         weatherRequest.setQueryParameter("long", String.valueOf(longitude));
+
+        weatherRequest.setQueryParameter("language", "en-US");
+
+
         weatherRequest.send(context,new ResponseListener() {
             @Override
             public void onSuccess(Response response) {
-                Log.d("weatherRequest", " " + response.getStatus());
+                Log.d("weatherRequest", " " + response.getResponseText());
 
                 JSONArray           days;
                 JSONObject          data;
@@ -138,14 +128,7 @@ public class MobileFirst {
                     observed = data.getJSONObject("observation");
 
                     currWeather.icon = observed.getInt("icon_code");
-                    /*
-                    currWeather.path =
-                        BMSClient.getInstance().getBluemixAppRoute() +
-                        "/public/weathericons/icon" +
-                                currWeather.icon +
-                                currWeather.icon +
-                        ".png";
-                    **/
+
                     currWeather.rawPhrase = observed.getString("phrase_12char");
                     currWeather.convertPhrase();
 

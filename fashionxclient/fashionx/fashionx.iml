@@ -113,6 +113,7 @@
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.ibm.mobilefirstplatform.clientsdk.android/core/1.1.0/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.ibm.mobilefirstplatform.clientsdk.android/push/1.0.2/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/fashionxclient/MACM-SDK-android-release/unspecified/jars" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/fashionxclient/speech-android-wrapper/unspecified/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental-classes" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental-runtime-classes" />
@@ -173,6 +174,7 @@
     <orderEntry type="library" exported="" name="play-services-cast-8.4.0" level="project" />
     <orderEntry type="module" module-name="speech-android-wrapper" exported="" />
     <orderEntry type="module" module-name="MACM-SDK-android-release" exported="" />
+    <orderEntry type="library" exported="" name="speech-android-wrapper-unspecified" level="project" />
     <orderEntry type="library" exported="" name="MACM-SDK-android-release-unspecified" level="project" />
   </component>
 </module>

@@ -14,8 +14,8 @@
     <string name="macm_path_ads">InterConnect2016/content types/Ads</string>
     <string name="weatherEndpoint">http://aweatherdemo.mybluemix.net/getCurrentWeather</string>
     <string name="AlchemyLanguageAPIKey">5ab94ec0941683815255412438853a6fc32ae841</string>
+    <string name="SpeechToTextWebSocktURL">wss://stream.watsonplatform.net/speech-to-text/api</string>
     <string name="SpeechToTextUserName">7adcf764-e02d-4370-86fd-e03fa2bcfe1b</string>
     <string name="SpeechToTextPwd">f0Q8tmqpXLkF</string>
-    <string name="AudioFileName">SpeechInput.wav</string>
 
 </resources>

@@ -10,7 +10,6 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/MACM-SDK-android-release" />
-            <option value="$PROJECT_DIR$/STTexamples" />
             <option value="$PROJECT_DIR$/fashionx" />
             <option value="$PROJECT_DIR$/speech-android-wrapper" />
           </set>
@@ -19,7 +18,6 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/MACM-SDK-android-release" />
-            <option value="$PROJECT_DIR$/STTexamples" />
             <option value="$PROJECT_DIR$/fashionx" />
             <option value="$PROJECT_DIR$/speech-android-wrapper" />
           </set>
