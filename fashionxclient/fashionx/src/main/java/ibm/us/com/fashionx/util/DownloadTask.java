@@ -1,4 +1,4 @@
-package ibm.us.com.fashionx;
+package ibm.us.com.fashionx.util;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;

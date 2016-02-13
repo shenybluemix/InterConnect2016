@@ -1,14 +1,26 @@
-package ibm.us.com.fashionx;
+package ibm.us.com.fashionx.model;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
+import android.widget.ImageView;
 
 import com.badoo.mobile.util.WeakHandler;
 
+import com.google.android.gms.drive.events.ChangeListener;
+import com.ibm.caas.CAASAssetRequest;
+import com.ibm.caas.CAASContentItem;
+import com.ibm.caas.CAASContentItemsList;
 import com.ibm.caas.CAASContentItemsRequest;
 import com.ibm.caas.CAASDataCallback;
+import com.ibm.caas.CAASErrorResult;
+import com.ibm.caas.CAASProperties;
+import com.ibm.caas.CAASRequestResult;
 import com.ibm.caas.CAASService;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request;
@@ -19,27 +31,32 @@ import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPushException;
 import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPushNotificationListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPushResponseListener;
 import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPSimplePushNotification;
+import com.ibm.watson.developer_cloud.alchemy.v1.model.Sentiment;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.MalformedURLException;
+import java.util.List;
+
+import ibm.us.com.fashionx.R;
+import ibm.us.com.fashionx.util.GenericCache;
 
 public class MobileFirst {
-
 
     private String weatherEndpoint;
     private Context context;
     private MobileFirstWeather weather;
     private MFPPush push;
     private MFPPushNotificationListener notificationListener;
+    private ImageView imageSuggest;
+    private CAASService caasService;
 
-
-    public MobileFirst(Context applicationContext) {
+    public MobileFirst(Context applicationContext, ImageView imageView) {
         //observers = new ArrayList<>();
         context = applicationContext;
-
+        imageSuggest = imageView;
         // Initialize Mobilefirst Core Service
         try {
             BMSClient.getInstance().initialize(
@@ -52,9 +69,20 @@ public class MobileFirst {
             murle.printStackTrace();
         }
 
+
+        caasService = new CAASService(
+                context.getString(R.string.macm_server),
+                context.getString(R.string.macm_context),
+                context.getString(R.string.macm_instance),
+                context.getString(R.string.macm_api_id),
+                context.getString(R.string.macm_api_password));
+
+        GenericCache.getInstance().put("CAASService", caasService);
+
+        initFashionList();
+
         weatherEndpoint = context.getString(R.string.weatherEndpoint);
         //weatherEndpoint = "https://af733bc9-5e0c-45bf-acc8-1c2da952650a:pywHxplbI3@twcservice.mybluemix.net/api/weather/v2/observations/current";
-        weather = new MobileFirstWeather();
 
         //Initialize Push Notification Service
         push = MFPPush.getInstance();
@@ -89,11 +117,35 @@ public class MobileFirst {
         push.listen(notificationListener);
     }
 
+    private void initFashionList(){
+
+        CAASDataCallback initFashionListCallback = new CAASDataCallback<CAASContentItemsList>() {
+            @Override
+            public void onSuccess(CAASRequestResult<CAASContentItemsList> caasRequestResult) {
+                List<CAASContentItem> CAASConentItemList = caasRequestResult.getResult().getContentItems();
+                //Cache the ContentItemList
+                GenericCache.getInstance().put("FashionItemList", CAASConentItemList);
+            }
+
+            @Override
+            public void onError(CAASErrorResult caasErrorResult) {
+
+            }
+        };
+
+        CAASContentItemsRequest contentRequest = new CAASContentItemsRequest(initFashionListCallback);
+        String path = context.getString(R.string.macm_path);
+        contentRequest.setPath(path);
+        contentRequest.addProperties(CAASProperties.KEYWORDS, CAASProperties.CATEGORIES, CAASProperties.TITLE);
+        contentRequest.addElements("Image");
+        caasService.executeRequest(contentRequest);
+
+    }
 
 
     // Current conditions from Weather Insights
     // Chris - get currentWeather from according the current location
-    public void currentWeather(final float latitude, final float longitude) {
+    public MobileFirstWeather currentWeather(final float latitude, final float longitude) {
         // Protected (authenticated resource)
 
         Request weatherRequest = new Request( weatherEndpoint, Request.GET);
@@ -105,17 +157,12 @@ public class MobileFirst {
         weatherRequest.setQueryParameter("lat", String.valueOf(latitude));
         weatherRequest.setQueryParameter("long", String.valueOf(longitude));
 
-        weatherRequest.setQueryParameter("language", "en-US");
-
-
         weatherRequest.send(context,new ResponseListener() {
             @Override
             public void onSuccess(Response response) {
                 Log.d("weatherRequest", " " + response.getResponseText());
 
-                JSONArray           days;
                 JSONObject          data;
-                //JSONObject          weather;
                 JSONObject          forecast;
                 JSONObject          observed;
                 JSONObject          metric;
@@ -128,16 +175,15 @@ public class MobileFirst {
                     observed = data.getJSONObject("observation");
 
                     currWeather.icon = observed.getInt("icon_code");
-
                     currWeather.rawPhrase = observed.getString("phrase_12char");
                     currWeather.convertPhrase();
-
                     metric = observed.getJSONObject("metric");
                     currWeather.temperature = metric.getInt("temp");
                     currWeather.maximum = metric.getInt("temp_max_24hour");
                     currWeather.minimum = metric.getInt("temp_min_24hour");
 
                     weather = currWeather;
+
                     Bundle bundle = new Bundle();
                     Message message = new Message();
                     bundle.putString("action", "weather");
@@ -146,24 +192,12 @@ public class MobileFirst {
                     WeakHandler handler = GenericCache.getInstance().get("handler");
                     handler.sendMessage(message);
 
-                    CAASService caasService = GenericCache.getInstance().get("caasService");
-
-                    CAASDataCallback CAASContentCallback = GenericCache.getInstance().get("caasContentCallback");
-
-                    CAASContentItemsRequest contentRequest = new CAASContentItemsRequest(CAASContentCallback);
-                    String path = context.getString(R.string.macm_path);
-                    contentRequest.setPath(path);
-                    contentRequest.addElements("Image");
-
-                    caasService.executeRequest(contentRequest);
                     Log.d("currentWeather", "caasService after execute" );
 
-
-                    return;
-
+                    getSuggestImage(weather,(Sentiment) GenericCache.getInstance().get("Sentiment"));
 
                 } catch(JSONException jsone) {
-                    jsone.printStackTrace();
+                    Log.e("currentWeather", jsone.getStackTrace().toString());
                 }
 
             }
@@ -177,7 +211,94 @@ public class MobileFirst {
                 Log.e("MOBILEFIRST", "Fail: " + extendedInfo) ;
             }
         });
+
+        return weather;
     }
+
+
+    public void getSuggestImage( final MobileFirstWeather mWeather, final Sentiment sentiment){
+
+        final CAASDataCallback<byte[]> CAASImgcallback = new CAASDataCallback<byte[]>() {
+            @Override
+            public void onSuccess(CAASRequestResult<byte[]> requestResult) {
+                byte[] bytes = requestResult.getResult();
+
+                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                BitmapDrawable drawable = new BitmapDrawable(
+                        context.getResources(),
+                        bitmap
+                );
+
+                imageSuggest.setImageDrawable(drawable);
+                Log.d("Asset", "Image success:");
+            }
+
+            @Override
+            public void onError(CAASErrorResult error) {
+                Log.e("Asset", "Image failed: " + error.getMessage());
+            }
+        };
+
+
+        CAASDataCallback CAASContentCallback = new CAASDataCallback<CAASContentItemsList>() {
+            @Override
+            public void onSuccess(CAASRequestResult<CAASContentItemsList> requestResult) {
+                //currentWeather = mobile.getWeather();
+                List<CAASContentItem> CAASConentItemList = requestResult.getResult().getContentItems();
+
+                //Cache the ContentItemList
+                GenericCache.getInstance().put("FashionItemList", CAASConentItemList);
+
+                String strSentiment;
+                if (sentiment != null){
+                    strSentiment = sentiment.getType().toString().toLowerCase();
+                }
+                else {
+                    strSentiment = null;
+                }
+                for (CAASContentItem tempItem : CAASConentItemList) {
+
+                    if (
+                            tempItem.getKeywords() != null
+                            &&
+                            tempItem.getKeywords().toLowerCase().contains(mWeather.phrase.toLowerCase())
+                            &&
+                            tempItem.getKeywords().toLowerCase().contains(strSentiment)) {
+
+                        String suggestImgURL = tempItem.getElement("Image");
+                        Log.d("CONTENT", "OnSuccess: " + suggestImgURL);
+
+                        CAASAssetRequest assetRequest = new CAASAssetRequest(suggestImgURL, CAASImgcallback);
+                        caasService.executeRequest(assetRequest);
+
+                        return;
+                    }
+
+                }
+            }
+
+            @Override
+            public void onError(CAASErrorResult caasErrorResult) {
+                Log.e("CONTENT", "onError" + caasErrorResult.getMessage());
+            }
+        };
+
+
+
+        CAASContentItemsRequest contentRequest = new CAASContentItemsRequest(CAASContentCallback);
+        String path = context.getString(R.string.macm_path);
+        contentRequest.setPath(path);
+        contentRequest.addProperties(CAASProperties.KEYWORDS, CAASProperties.CATEGORIES, CAASProperties.TITLE);
+        contentRequest.addElements("Image");
+
+
+        caasService.executeRequest(contentRequest);
+
+    }
+
+
+
+
 
     public MobileFirstWeather getWeather(){
         return weather;

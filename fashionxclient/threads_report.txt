@@ -1,7 +1,7 @@
 "main@3589" prio=5 waiting
   java.lang.Thread.State: WAITING
-	  at ibm.us.com.fashionx.MobileFirst.currentWeather(MobileFirst.java:134)
-	  at ibm.us.com.fashionx.MainActivity$2.onLocationChanged(MainActivity.java:142)
+	  at ibm.us.com.fashionx.model.MobileFirst.currentWeather(MobileFirst.java:134)
+	  at ibm.us.com.fashionx.Activity.MainActivity$2.onLocationChanged(MainActivity.java:142)
 	  at android.location.LocationManager$ListenerTransport._handleMessage(LocationManager.java:281)
 	  at android.location.LocationManager$ListenerTransport.access$000(LocationManager.java:210)
 	  at android.location.LocationManager$ListenerTransport$1.handleMessage(LocationManager.java:226)
@@ -15,7 +15,7 @@
 
 "OkHttp http://aweatherdemo.mybluemix.net/getCurrentWeather?lat=29.0&long=-115.0@4109" prio=5 waiting
   java.lang.Thread.State: WAITING
-	  at ibm.us.com.fashionx.MobileFirst$1.onSuccess(MobileFirst.java:74)
+	  at ibm.us.com.fashionx.model.MobileFirst$1.onSuccess(MobileFirst.java:74)
 	  at com.ibm.mobilefirstplatform.clientsdk.android.core.api.Request$1.onResponse(Request.java:249)
 	  at com.squareup.okhttp.Call$AsyncCall.execute(Call.java:170)
 	  at com.squareup.okhttp.internal.NamedRunnable.run(NamedRunnable.java:33)

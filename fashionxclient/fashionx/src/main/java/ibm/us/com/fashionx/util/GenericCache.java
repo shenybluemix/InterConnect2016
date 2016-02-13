@@ -1,4 +1,4 @@
-package ibm.us.com.fashionx;
+package ibm.us.com.fashionx.util;
 
 
 import java.util.Collection;

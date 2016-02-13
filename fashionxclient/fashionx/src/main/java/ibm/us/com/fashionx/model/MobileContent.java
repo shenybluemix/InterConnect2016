@@ -1,6 +1,5 @@
-package ibm.us.com.fashionx;
+package ibm.us.com.fashionx.model;
 
-import android.content.Context;
 import android.util.Log;
 
 import com.ibm.caas.CAASContentItem;
@@ -11,7 +10,6 @@ import com.ibm.caas.CAASErrorResult;
 import com.ibm.caas.CAASRequestResult;
 import com.ibm.caas.CAASService;
 
-import java.util.ArrayList;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -132,7 +130,6 @@ public class MobileContent {
         request.setPath(CONTENT_CATALOG);
         getService().executeRequest(request);
     }
-
 
     //input - weather : "Snow" / "Sun" / "Rain"
     public void suggest(String weather) {

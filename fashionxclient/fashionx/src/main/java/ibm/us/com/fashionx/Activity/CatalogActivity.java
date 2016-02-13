@@ -1,23 +1,32 @@
-package ibm.us.com.fashionx;
+package ibm.us.com.fashionx.activity;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
+import android.app.Activity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ListView;
 
-import com.ibm.caas.CAASAssetRequest;
-import com.ibm.caas.CAASDataCallback;
-import com.ibm.caas.CAASErrorResult;
+import com.ibm.caas.CAASContentItem;
+import com.ibm.caas.CAASContentItemsList;
+import com.ibm.caas.CAASService;
 
 import java.util.ArrayList;
+import java.util.List;
 
-public class CatalogActivity extends AppCompatActivity {
+import ibm.us.com.fashionx.model.CatalogItem;
+import ibm.us.com.fashionx.model.ItemListAdapter;
+import ibm.us.com.fashionx.model.MobileContent;
+import ibm.us.com.fashionx.model.MobileContentListener;
+import ibm.us.com.fashionx.R;
+import ibm.us.com.fashionx.util.GenericCache;
 
-    private MobileContent content;
+public class CatalogActivity extends Activity{
+
+    private CAASService caasService;
+    private ItemListAdapter adapter;
+    private List<CAASContentItem> fashionItemList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,33 +43,21 @@ public class CatalogActivity extends AppCompatActivity {
         });
 
         // Mobile Content
-        content = new MobileContent(
+        caasService = new CAASService(
             getApplicationContext().getString(R.string.macm_server),
             getApplicationContext().getString(R.string.macm_context),
             getApplicationContext().getString(R.string.macm_instance),
             getApplicationContext().getString(R.string.macm_api_id),
             getApplicationContext().getString(R.string.macm_api_password)
         );
-        content.setMobileContentListener(new MobileContentListener() {
-            @Override
-            public void onCatalog(ArrayList<CatalogItem> departments) {
-                Log.d("CATALOG", "Got " + departments.size() + " items.");
-            }
 
-            @Override
-            public void onAdvertise(String path, String body) {
-                ;
-            }
+        fashionItemList = GenericCache.getInstance().get("FashionItemList");
 
-            @Override
-            public void onSuggest(String path) {
-                ;
-            }
-        });
+        adapter = new ItemListAdapter(getApplicationContext(),fashionItemList);
 
-        //Chris
-        content.catalog();
-        //content.all();
+        ListView listView = (ListView) findViewById(R.id.listView);
+        listView.setAdapter(adapter);
+
     }
 
 }

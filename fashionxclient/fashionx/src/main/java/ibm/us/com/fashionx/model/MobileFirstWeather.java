@@ -1,4 +1,4 @@
-package ibm.us.com.fashionx;
+package ibm.us.com.fashionx.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -21,9 +21,9 @@ public class MobileFirstWeather implements Parcelable {
     //Phrases get directly from weather API
     public String   rawPhrase;
 
-    private final String SUN = "Sun";
-    private final String SNOW = "Snow";
-    private final String RAIN = "Rain";
+    private final String SUN = "sun";
+    private final String SNOW = "snow";
+    private final String RAIN = "rain";
 
     public MobileFirstWeather() {
         phrase = "Dummy";

@@ -1,9 +1,8 @@
-package ibm.us.com.fashionx;
+package ibm.us.com.fashionx.activity;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
-import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,6 +17,11 @@ import com.ibm.caas.CAASErrorResult;
 import com.ibm.caas.CAASRequestResult;
 
 import java.util.ArrayList;
+
+import ibm.us.com.fashionx.model.CatalogItem;
+import ibm.us.com.fashionx.model.MobileContent;
+import ibm.us.com.fashionx.model.MobileContentListener;
+import ibm.us.com.fashionx.R;
 
 public class NavigateActivity extends AppCompatActivity {
 

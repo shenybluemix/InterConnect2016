@@ -1,12 +1,9 @@
-package ibm.us.com.fashionx;
+package ibm.us.com.fashionx.activity;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -30,18 +27,9 @@ import org.json.JSONObject;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.badoo.mobile.util.WeakHandler;
-
-import com.ibm.caas.CAASContentItem;
-import com.ibm.caas.CAASContentItemsList;
-import com.ibm.caas.CAASAssetRequest;
-import com.ibm.caas.CAASRequestResult;
-import com.ibm.caas.CAASDataCallback;
-import com.ibm.caas.CAASErrorResult;
-import com.ibm.caas.CAASService;
 
 import com.ibm.mobilefirstplatform.clientsdk.android.push.api.MFPPush;
 
@@ -53,36 +41,29 @@ import com.ibm.watson.developer_cloud.android.speech_to_text.v1.*;
 import com.ibm.watson.developer_cloud.android.speech_to_text.v1.SpeechToText;
 import com.ibm.watson.developer_cloud.android.speech_to_text.v1.dto.SpeechConfiguration;
 
+import ibm.us.com.fashionx.R;
+import ibm.us.com.fashionx.model.MobileFirst;
+import ibm.us.com.fashionx.model.MobileFirstWeather;
+import ibm.us.com.fashionx.util.GenericCache;
 
 
 public class MainActivity extends AppCompatActivity {
 
-    private ImageView imgSuggest;
     private LocationManager gps;
     private LocationListener locationMonitor;
     private WeakHandler handler;
 
+    private MobileFirst mobileFirst;
 
-    private MobileFirst mobile;
-    private MobileContent content;
-    private MobileFirstWeather currentWeather;
-    private CAASService caasService;
-    private String suggestImgURL;
     private AlchemyLanguage alchemyService;
-
-    GenericCache genericCache;
-
-
-    String mRecognitionResults;
-    Handler mHandler;
+    private String mRecognitionResults;
+    private Handler mHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(ibm.us.com.fashionx.R.layout.activity_main);
 
-        // User interface
-        imgSuggest = (ImageView) findViewById(R.id.image_suggest);
         // Weak handler
         // Chris: Draw currentweather based on location to the UI
         handler = new WeakHandler(new Handler.Callback() {
@@ -138,71 +119,7 @@ public class MainActivity extends AppCompatActivity {
 
         GenericCache.getInstance().put("handler", handler);
 
-        mobile = new MobileFirst(getApplicationContext());
-        currentWeather = new MobileFirstWeather();
-
-        content = new MobileContent(
-                getApplicationContext().getString(R.string.macm_server),
-                getApplicationContext().getString(R.string.macm_context),
-                getApplicationContext().getString(R.string.macm_instance),
-                getApplicationContext().getString(R.string.macm_api_id),
-                getApplicationContext().getString(R.string.macm_api_password)
-        );
-
-        caasService = content.getService();
-
-        GenericCache.getInstance().put("caasService", caasService);
-
-        final CAASDataCallback<byte[]> CAASImgcallback = new CAASDataCallback<byte[]>() {
-            @Override
-            public void onSuccess(CAASRequestResult<byte[]> requestResult) {
-                byte[] bytes = requestResult.getResult();
-
-                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                BitmapDrawable drawable = new BitmapDrawable(
-                        getApplicationContext().getResources(),
-                        bitmap
-                );
-
-                imgSuggest.setImageDrawable(drawable);
-                Log.d("Asset", "Image success:");
-            }
-
-            @Override
-            public void onError(CAASErrorResult error) {
-                Log.e("Asset", "Image failed: " + error.getMessage());
-            }
-        };
-
-        final CAASDataCallback CAASContentCallback = new CAASDataCallback<CAASContentItemsList>() {
-            @Override
-            public void onSuccess(CAASRequestResult<CAASContentItemsList> requestResult) {
-                currentWeather = mobile.getWeather();
-                List<CAASContentItem> CAASConentItemList = requestResult.getResult().getContentItems();
-                for (CAASContentItem tempItem : CAASConentItemList) {
-
-                    if (tempItem.getTitle().equals(currentWeather.phrase)) {
-                        suggestImgURL = tempItem.getElement("Image");
-                        Log.d("CONTENT", "OnSuccess: " + suggestImgURL);
-
-                        CAASAssetRequest assetRequest = new CAASAssetRequest(suggestImgURL, CAASImgcallback);
-                        caasService.executeRequest(assetRequest);
-
-                        return;
-                    }
-                }
-
-
-            }
-
-            @Override
-            public void onError(CAASErrorResult caasErrorResult) {
-                Log.e("CONTENT", "onError" + caasErrorResult.getMessage());
-            }
-        };
-
-        GenericCache.getInstance().put("caasContentCallback", CAASContentCallback);
-
+        mobileFirst = new MobileFirst(getApplicationContext(), (ImageView) findViewById(R.id.image_suggest));
 
         //Request voice capture
         initSTT();
@@ -229,7 +146,9 @@ public class MainActivity extends AppCompatActivity {
 
                     AlchemySentimentTask sentimentTask = new AlchemySentimentTask();
                     String str = GenericCache.getInstance().get("RecognitionResults");
-                    sentimentTask.execute(str);
+                    if (str != "" && str != null){
+                        sentimentTask.execute(str);
+                    }
                 }
                 mStartRecording = !mStartRecording;
             }
@@ -258,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
                 editor.apply();
 
                 // Request the current weather
-                mobile.currentWeather(latitude, longitude);
+                mobileFirst.currentWeather(latitude, longitude);
             }
 
             @Override
@@ -318,16 +237,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        MFPPush push = mobile.getPush();
+        MFPPush push = mobileFirst.getPush();
         if (push != null) {
-            push.listen(mobile.getNotificationListener());
+            push.listen(mobileFirst.getNotificationListener());
         }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        MFPPush push = mobile.getPush();
+        MFPPush push = mobileFirst.getPush();
         if (push != null) {
             push.hold();
         }
@@ -437,23 +356,24 @@ public class MainActivity extends AppCompatActivity {
     class AlchemySentimentTask extends AsyncTask<String, Void, Sentiment> {
 
         DocumentSentiment docSentiment;
-
+        TextView mTextRecord = (TextView)findViewById(R.id.text_record);
         @Override
-        protected Sentiment doInBackground(String... params) {
+        protected Sentiment doInBackground(String... inputText) {
             alchemyService = new AlchemyLanguage();
             alchemyService.setApiKey(getApplicationContext().getString(R.string.AlchemyLanguageAPIKey));
             //GenericCache.getInstance().put("AlchemySerivce", alchemyService);
             Map<String, Object> text = new HashMap<String, Object>();
-            text.put(AlchemyLanguage.TEXT, params);
+            text.put(AlchemyLanguage.TEXT, inputText);
             docSentiment = alchemyService.getSentiment(text);
             return docSentiment.getSentiment();
         }
 
         @Override
         protected void onPostExecute(Sentiment Sentiment) {
-            GenericCache.getInstance().put("Sentiment",docSentiment.getSentiment());
-            displayResult("\n Sentiment: " + docSentiment.getSentiment().getType() + " " +docSentiment.getSentiment().getScore());
-            Log.d("Sentiment", docSentiment.getSentiment().getType() + " " +docSentiment.getSentiment().getScore());
+            GenericCache.getInstance().put("Sentiment",Sentiment);
+            displayResult("\n Sentiment: " + Sentiment.getType() + " " +Sentiment.getScore());
+            Log.d("Sentiment", Sentiment.getType() + " " +Sentiment.getScore());
+            //mobileFirst.getSuggestImage(mobileFirst.getWeather(),Sentiment);
         }
 
     }
