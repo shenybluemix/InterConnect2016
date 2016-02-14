@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.badoo.mobile.util.WeakHandler;
 
@@ -38,7 +39,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Handler;
 
 import ibm.us.com.fashionx.R;
 import ibm.us.com.fashionx.util.GenericCache;
@@ -57,6 +60,7 @@ public class MobileFirst {
         //observers = new ArrayList<>();
         context = applicationContext;
         imageSuggest = imageView;
+
         // Initialize Mobilefirst Core Service
         try {
             BMSClient.getInstance().initialize(
@@ -106,8 +110,7 @@ public class MobileFirst {
 
             @Override
             public void onReceive(MFPSimplePushNotification mfpSimplePushNotification) {
-                //to do OnReceive a new content is created from MACM
-
+                //OnReceive a new content is created from MACM
                 Log.d("PUSH","payload: "+ mfpSimplePushNotification.getPayload());
                 Log.d("PUSH","Alert: "+ mfpSimplePushNotification.getAlert());
 
@@ -117,19 +120,34 @@ public class MobileFirst {
         push.listen(notificationListener);
     }
 
+
+    //cache the itemList
     private void initFashionList(){
 
         CAASDataCallback initFashionListCallback = new CAASDataCallback<CAASContentItemsList>() {
             @Override
             public void onSuccess(CAASRequestResult<CAASContentItemsList> caasRequestResult) {
                 List<CAASContentItem> CAASConentItemList = caasRequestResult.getResult().getContentItems();
+
                 //Cache the ContentItemList
                 GenericCache.getInstance().put("FashionItemList", CAASConentItemList);
+                List<String> imgURLList = new ArrayList<String>(CAASConentItemList.size());
+
+                for (CAASContentItem item : CAASConentItemList){
+                    String strImageURL = item.getElement("Image");
+                    String absoluteImageURL = caasService.getServerURL() + strImageURL;
+                    imgURLList.add(absoluteImageURL);
+                    cacheFashionImage(absoluteImageURL);
+                }
+                //Cache the Image URL List
+                GenericCache.getInstance().put("FashionImageURLList", imgURLList);
+
+                Log.d("initFashionList", imgURLList.toString());
             }
 
             @Override
             public void onError(CAASErrorResult caasErrorResult) {
-
+                Log.e("initFashionList", caasErrorResult.getMessage());
             }
         };
 
@@ -142,6 +160,32 @@ public class MobileFirst {
 
     }
 
+
+    private void cacheFashionImage(final String ImageURL){
+
+        final CAASDataCallback<byte[]> CAASImgcallback = new CAASDataCallback<byte[]>() {
+            @Override
+            public void onSuccess(CAASRequestResult<byte[]> requestResult) {
+                byte[] bytes = requestResult.getResult();
+
+                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
+                //cache all the Image, use ImageURL as the key
+                GenericCache.getInstance().put(ImageURL,bitmap);
+
+                Log.d("cacheFashionImage", "Image success:");
+            }
+
+            @Override
+            public void onError(CAASErrorResult error) {
+                Log.e("cacheFashionImage", "Image failed: " + error.getMessage());
+            }
+        };
+
+        CAASAssetRequest assetRequest = new CAASAssetRequest(ImageURL, CAASImgcallback);
+        caasService.executeRequest(assetRequest);
+
+    }
 
     // Current conditions from Weather Insights
     // Chris - get currentWeather from according the current location
@@ -161,7 +205,7 @@ public class MobileFirst {
             @Override
             public void onSuccess(Response response) {
                 Log.d("weatherRequest", " " + response.getResponseText());
-
+                JSONObject          metadata;
                 JSONObject          data;
                 JSONObject          forecast;
                 JSONObject          observed;
@@ -172,7 +216,12 @@ public class MobileFirst {
                 currWeather.longitude = longitude;
                 try {
                     data = new JSONObject(response.getResponseText());
+                    metadata = data.getJSONObject("metadata");
                     observed = data.getJSONObject("observation");
+                    if (metadata.getInt("status_code") !=200){
+                        Log.e("currentWeather", "weather API Error exceeds call limiation, comeback later");
+                        return;
+                    }
 
                     currWeather.icon = observed.getInt("icon_code");
                     currWeather.rawPhrase = observed.getString("phrase_12char");
@@ -184,6 +233,8 @@ public class MobileFirst {
 
                     weather = currWeather;
 
+                    GenericCache.getInstance().put("weather", weather);
+
                     Bundle bundle = new Bundle();
                     Message message = new Message();
                     bundle.putString("action", "weather");
@@ -192,12 +243,12 @@ public class MobileFirst {
                     WeakHandler handler = GenericCache.getInstance().get("handler");
                     handler.sendMessage(message);
 
-                    Log.d("currentWeather", "caasService after execute" );
+                    Log.d("currentWeather", weather.phrase + weather.latitude + weather.longitude );
 
                     getSuggestImage(weather,(Sentiment) GenericCache.getInstance().get("Sentiment"));
 
                 } catch(JSONException jsone) {
-                    Log.e("currentWeather", jsone.getStackTrace().toString());
+                    Log.e("currentWeather", jsone.toString());
                 }
 
             }
@@ -209,6 +260,7 @@ public class MobileFirst {
                 }
                 Log.e("MOBILEFIRST", "Fail: " + response.toString()+"\n") ;
                 Log.e("MOBILEFIRST", "Fail: " + extendedInfo) ;
+                weather = null;
             }
         });
 
@@ -216,83 +268,55 @@ public class MobileFirst {
     }
 
 
-    public void getSuggestImage( final MobileFirstWeather mWeather, final Sentiment sentiment){
+    public void getSuggestImage(MobileFirstWeather mWeather, Sentiment sentiment){
 
-        final CAASDataCallback<byte[]> CAASImgcallback = new CAASDataCallback<byte[]>() {
-            @Override
-            public void onSuccess(CAASRequestResult<byte[]> requestResult) {
-                byte[] bytes = requestResult.getResult();
+        String strSentiment;
+        if (sentiment != null){
+            strSentiment = sentiment.getType().toString().toLowerCase();
+        }
+        else {
+            strSentiment = null;
+        }
 
-                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                BitmapDrawable drawable = new BitmapDrawable(
+        List<CAASContentItem> CAASConentItemList = GenericCache.getInstance().get("FashionItemList");
+
+        for (CAASContentItem tempItem : CAASConentItemList) {
+            if (
+                    mWeather != null
+                    &&
+                    tempItem.getKeywords() != null
+                    &&
+                    tempItem.getKeywords().toLowerCase().contains(mWeather.phrase.toLowerCase())
+                    &&
+                    tempItem.getKeywords().toLowerCase().contains(strSentiment)) {
+
+                String suggestImgURL = tempItem.getElement("Image");
+                Log.d("CONTENT", "OnSuccess: " + suggestImgURL);
+
+                String imgURL = caasService.getServerURL() + suggestImgURL;
+                Bitmap bitmap = GenericCache.getInstance().get(imgURL);
+                final BitmapDrawable drawable = new BitmapDrawable(
                         context.getResources(),
                         bitmap
                 );
 
-                imageSuggest.setImageDrawable(drawable);
-                Log.d("Asset", "Image success:");
-            }
-
-            @Override
-            public void onError(CAASErrorResult error) {
-                Log.e("Asset", "Image failed: " + error.getMessage());
-            }
-        };
-
-
-        CAASDataCallback CAASContentCallback = new CAASDataCallback<CAASContentItemsList>() {
-            @Override
-            public void onSuccess(CAASRequestResult<CAASContentItemsList> requestResult) {
-                //currentWeather = mobile.getWeather();
-                List<CAASContentItem> CAASConentItemList = requestResult.getResult().getContentItems();
-
-                //Cache the ContentItemList
-                GenericCache.getInstance().put("FashionItemList", CAASConentItemList);
-
-                String strSentiment;
-                if (sentiment != null){
-                    strSentiment = sentiment.getType().toString().toLowerCase();
-                }
-                else {
-                    strSentiment = null;
-                }
-                for (CAASContentItem tempItem : CAASConentItemList) {
-
-                    if (
-                            tempItem.getKeywords() != null
-                            &&
-                            tempItem.getKeywords().toLowerCase().contains(mWeather.phrase.toLowerCase())
-                            &&
-                            tempItem.getKeywords().toLowerCase().contains(strSentiment)) {
-
-                        String suggestImgURL = tempItem.getElement("Image");
-                        Log.d("CONTENT", "OnSuccess: " + suggestImgURL);
-
-                        CAASAssetRequest assetRequest = new CAASAssetRequest(suggestImgURL, CAASImgcallback);
-                        caasService.executeRequest(assetRequest);
-
-                        return;
+                final Runnable runnableUi = new Runnable(){
+                    @Override
+                    public void run() {
+                        imageSuggest.setImageDrawable(drawable);
                     }
+                };
 
-                }
+                new Thread(){
+                    public void run(){
+                        android.os.Handler mHandler = GenericCache.getInstance().get("mHandler");
+                        mHandler.post(runnableUi);
+                    }
+                }.start();
+
             }
 
-            @Override
-            public void onError(CAASErrorResult caasErrorResult) {
-                Log.e("CONTENT", "onError" + caasErrorResult.getMessage());
-            }
-        };
-
-
-
-        CAASContentItemsRequest contentRequest = new CAASContentItemsRequest(CAASContentCallback);
-        String path = context.getString(R.string.macm_path);
-        contentRequest.setPath(path);
-        contentRequest.addProperties(CAASProperties.KEYWORDS, CAASProperties.CATEGORIES, CAASProperties.TITLE);
-        contentRequest.addElements("Image");
-
-
-        caasService.executeRequest(contentRequest);
+        }
 
     }
 

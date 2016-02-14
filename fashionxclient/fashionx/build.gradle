@@ -9,6 +9,8 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -19,6 +21,8 @@ android {
     sourceSets { main { assets.srcDirs = ['src/main/assets', 'src/main/res/assets/'] } }
     productFlavors {
     }
+
+
 }
 
 repositories {
@@ -41,7 +45,12 @@ dependencies {
     compile 'com.google.android.gms:play-services:8.4.0'
     compile 'com.google.android.gms:play-services-auth:8.4.0'
     compile 'com.google.android.gms:play-services-gcm:8.4.0'
+    compile 'com.android.support:multidex:1.0.0'
 }
+
+
+
+
 
 
 

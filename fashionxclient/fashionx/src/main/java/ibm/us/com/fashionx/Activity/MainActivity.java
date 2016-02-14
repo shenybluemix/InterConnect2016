@@ -125,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
         initSTT();
         final TextView textRecord = (TextView)findViewById(R.id.text_record);
         mHandler = new Handler();
+        GenericCache.getInstance().put("mHandler", mHandler);
         LinearLayout layout = (LinearLayout) findViewById(R.id.layout_record);
         layout.setOnClickListener(new View.OnClickListener() {
             boolean mStartRecording = true;
@@ -163,8 +164,10 @@ public class MainActivity extends AppCompatActivity {
 
                 Log.d("onLocationChanged" , location.getLongitude() + " " + location.getAltitude());
 
-                // Just once
-                //gps.removeUpdates(this);
+                if (ContextCompat.checkSelfPermission(getApplicationContext(), "android.permission.ACCESS_COARSE_LOCATION") == PackageManager.PERMISSION_GRANTED) {
+                    //Just once
+                    gps.removeUpdates(this);
+                }
 
                 float latitude = (float) location.getLatitude();
                 float longitude = (float) location.getLongitude();
@@ -181,20 +184,13 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-                ;
-            }
+            public void onStatusChanged(String provider, int status, Bundle extras) {}
 
             @Override
-            public void onProviderEnabled(String provider) {
-                //
-                //
-            }
+            public void onProviderEnabled(String provider) {}
 
             @Override
-            public void onProviderDisabled(String provider) {
-                ;
-            }
+            public void onProviderDisabled(String provider) {}
         };
         /**
          // Location history
@@ -215,8 +211,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Log.d("onClick", "imgNavigate Fired");
                 if (ContextCompat.checkSelfPermission(getApplicationContext(), "android.permission.ACCESS_COARSE_LOCATION") == PackageManager.PERMISSION_GRANTED) {
-                    gps.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0, locationMonitor);
-                    gps.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,10000,0, locationMonitor);
+                    gps.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 10000, locationMonitor);
+                    gps.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,10000,10000, locationMonitor);
                 }
             }
         });
