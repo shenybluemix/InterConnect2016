@@ -222,7 +222,8 @@ public class MainActivity extends AppCompatActivity {
         layCatalog.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, CatalogActivity.class);
+                GenericCache.getInstance().put("MobileFirst", mobileFirst);
+                Intent intent = new Intent(getApplicationContext(), CatalogActivity.class);
                 startActivity(intent);
 
             }

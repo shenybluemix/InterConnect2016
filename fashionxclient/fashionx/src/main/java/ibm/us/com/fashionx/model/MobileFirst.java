@@ -81,6 +81,7 @@ public class MobileFirst {
                 context.getString(R.string.macm_api_id),
                 context.getString(R.string.macm_api_password));
 
+        caasService.setAndroidContext(applicationContext);
         GenericCache.getInstance().put("CAASService", caasService);
 
         initFashionList();
@@ -114,6 +115,7 @@ public class MobileFirst {
                 Log.d("PUSH","payload: "+ mfpSimplePushNotification.getPayload());
                 Log.d("PUSH","Alert: "+ mfpSimplePushNotification.getAlert());
 
+                initFashionList();
             }
         };
 
@@ -122,7 +124,7 @@ public class MobileFirst {
 
 
     //cache the itemList
-    private void initFashionList(){
+    public void initFashionList(){
 
         CAASDataCallback initFashionListCallback = new CAASDataCallback<CAASContentItemsList>() {
             @Override
@@ -130,7 +132,14 @@ public class MobileFirst {
                 List<CAASContentItem> CAASConentItemList = caasRequestResult.getResult().getContentItems();
 
                 //Cache the ContentItemList
-                GenericCache.getInstance().put("FashionItemList", CAASConentItemList);
+                if (GenericCache.getInstance().get("FashionItemList") != null){
+                    GenericCache.getInstance().remove("FashionItemList");
+                }
+                else {
+                    GenericCache.getInstance().put("FashionItemList", CAASConentItemList);
+                }
+
+
                 List<String> imgURLList = new ArrayList<String>(CAASConentItemList.size());
 
                 for (CAASContentItem item : CAASConentItemList){
@@ -329,9 +338,12 @@ public class MobileFirst {
     }
 
     public MFPPush getPush(){
+
+
         return  push;
 
     }
+
 
     public MFPPushNotificationListener getNotificationListener(){
         return this.notificationListener;

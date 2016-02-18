@@ -9,17 +9,14 @@ import android.widget.ImageView;
 import android.widget.ListView;
 
 import com.ibm.caas.CAASContentItem;
-import com.ibm.caas.CAASContentItemsList;
 import com.ibm.caas.CAASService;
 
-import java.util.ArrayList;
+
 import java.util.List;
 
-import ibm.us.com.fashionx.model.CatalogItem;
 import ibm.us.com.fashionx.model.ItemListAdapter;
-import ibm.us.com.fashionx.model.MobileContent;
-import ibm.us.com.fashionx.model.MobileContentListener;
 import ibm.us.com.fashionx.R;
+import ibm.us.com.fashionx.model.MobileFirst;
 import ibm.us.com.fashionx.util.GenericCache;
 
 public class CatalogActivity extends Activity{
@@ -27,6 +24,8 @@ public class CatalogActivity extends Activity{
     private CAASService caasService;
     private ItemListAdapter adapter;
     private List<CAASContentItem> fashionItemList;
+    private ListView listView;
+    private MobileFirst mobileFirst;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,13 +50,24 @@ public class CatalogActivity extends Activity{
             getApplicationContext().getString(R.string.macm_api_password)
         );
 
-        fashionItemList = GenericCache.getInstance().get("FashionItemList");
+        mobileFirst = GenericCache.getInstance().get("MobileFirst");
+        mobileFirst.initFashionList();
 
+        fashionItemList = GenericCache.getInstance().get("FashionItemList");
         adapter = new ItemListAdapter(getApplicationContext(),fashionItemList);
 
-        ListView listView = (ListView) findViewById(R.id.listView);
+        listView = (ListView) findViewById(R.id.listView);
         listView.setAdapter(adapter);
 
     }
 
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        mobileFirst.initFashionList();
+        fashionItemList = GenericCache.getInstance().get("FashionItemList");
+        adapter = new ItemListAdapter(getApplicationContext(),fashionItemList);
+        listView.setAdapter(adapter);
+    }
 }

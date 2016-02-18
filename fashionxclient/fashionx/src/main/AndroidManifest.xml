@@ -62,7 +62,6 @@
         <!-- Push Settings End -->
 
         <activity android:name=".activity.CatalogActivity" />
-        <activity android:name=".activity.NavigateActivity" />
 
         <meta-data
             android:name="com.google.android.gms.version"
