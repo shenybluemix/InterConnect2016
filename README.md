@@ -13,6 +13,6 @@ https://console.ng.bluemix.net/catalog/services/insights-for-weather/
 https://www.ibm.com/smarterplanet/us/en/ibmwatson/developercloud/alchemy-language.html
 https://www.ibm.com/smarterplanet/us/en/ibmwatson/developercloud/speech-to-text.html
 
-Download the apk file here and run on your Android device 
+You can download the apk file and run on your Android device 
 
 If you are about to run the source code. Update the res/values/strings.xml for the server/API endpoint URL and credential. 
