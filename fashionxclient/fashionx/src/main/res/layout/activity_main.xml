@@ -94,7 +94,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="55°"
+                android:text="--°"
                 android:id="@+id/text_temperature"
                 android:textColor="@color/font_light"
                 android:textSize="34sp"
@@ -139,7 +139,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="42°"
+                    android:text="--°"
                     android:id="@+id/text_maximum"
                     android:textSize="17sp"
                     android:textColor="@color/font_light" />
@@ -154,7 +154,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="62°"
+                    android:text="--°"
                     android:id="@+id/text_minimum"
                     android:textSize="17sp"
                     android:textColor="@color/font_light" />

@@ -73,7 +73,6 @@ public class MobileFirst {
             murle.printStackTrace();
         }
 
-
         caasService = new CAASService(
                 context.getString(R.string.macm_server),
                 context.getString(R.string.macm_context),
@@ -292,6 +291,8 @@ public class MobileFirst {
         for (CAASContentItem tempItem : CAASConentItemList) {
             if (
                     mWeather != null
+                    &&
+                    strSentiment != null
                     &&
                     tempItem.getKeywords() != null
                     &&
