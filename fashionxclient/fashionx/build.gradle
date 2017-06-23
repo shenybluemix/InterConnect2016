@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '23.0.2'
+    buildToolsVersion '25.0.0'
     defaultConfig {
         applicationId "ibm.us.com.fashionx"
         minSdkVersion 19
@@ -37,7 +37,8 @@ dependencies {
     // MACM SDK
     compile project(':MACM-SDK-android-release')
     compile project(':speech-android-wrapper')
-    compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.ibm.watson.developer_cloud:android-sdk:0.2.3'
+    compile 'com.android.support:appcompat-v7:23.2.1'
     compile 'com.ibm.mobilefirstplatform.clientsdk.android:core:1.1.0'
     compile 'com.ibm.mobilefirstplatform.clientsdk.android:push:1.0.2'
     compile 'com.ibm.watson.developer_cloud:java-sdk:2.6.0'

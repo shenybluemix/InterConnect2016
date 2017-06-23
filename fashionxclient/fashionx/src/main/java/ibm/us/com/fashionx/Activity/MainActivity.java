@@ -256,6 +256,7 @@ public class MainActivity extends AppCompatActivity {
             //WARNING! There are classes in JAVA SpeechToText SDK have the same name
             URI uri = new URI(getApplicationContext().getString(R.string.SpeechToTextWebSocktURL));
             SpeechConfiguration sConfig = new SpeechConfiguration(SpeechConfiguration.AUDIO_FORMAT_OGGOPUS);
+
             SpeechToText.sharedInstance().initWithContext(uri,getApplicationContext(),sConfig);
 
         }
